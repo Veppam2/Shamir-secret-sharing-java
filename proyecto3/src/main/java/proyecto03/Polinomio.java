@@ -110,4 +110,96 @@ public class Polinomio{
 		return;
 	}
 
+	public BigInteger evaluarEnX( BigInteger x){
+		/*
+		 * Usando el algoritmo de Horner
+		 * */
+		BigInteger resultado = BigInteger.valueOf(0);
+		for( int i = this.grado.length; i>=0  ; i--){
+			resultado = resultado.multiply( x ).add(this.coeficientes[i]);
+			
+		}
+
+		return resultado;
+	}
+
+	public BigInteger interpolarConLagrangeEnX( Vector<BigInteger>[] puntos , BigInteger x){
+		
+		BigInteger resultado = BigInteger.valueOf(0);
+		
+		//Interpolación de Lagrange
+		for ( int i = 0 ; i < puntos.length ; i++){
+
+			BigInteger coordXi = puntos[i].elementAt(0);
+			BigInteger coordYi = puntos[i].elementAt(1);
+
+			BigInteger numerador = BigInteger.valueOf(1);
+			BigInteger denominador = BigInteger.valueOf(1);
+				
+			for( int j = 0 ; j <puntos.length ; j++){
+				//Base de Lagrange
+				if(i!=j){
+					CoordXj = puntos[j].elementAt(0);
+					
+					//Operaciones en el campo Zp
+					numerador = this.productoEnZp(
+							numerador , 
+							this.restaEnZp( x , coordXj) 
+					);
+					denominador = this.productoEnZp( 
+							denominador , 
+							this.restaEnZp( coordXi , coordXj) 
+					);
+
+
+				}
+			}	
+
+			//Forma de Lagrange
+			BigInteger baseDeLagrange = this.divisionEnZp( numerador , denominador);
+			BigInteger formaDeLagrangePi = this.productoEnZp( coordYi , baseDeLagrange );
+
+			resultado = this.sumaEnZp( resultado , formaDeLagrangePi );
+		
+		}
+		return resultado;
+		
+	}
+	
+	private BigInteger sumaEnZp( BigInteger a , BigInteger b){
+
+		BigInteger suma = a.subtract(b);
+		suma = suma.mod(PRIMOZP);
+
+		return suma;
+	}
+
+	private BigInteger restaEnZp( BigInteger a , BigInteger b){
+
+		BigInteger resta = a.subtract(b);
+		resta = resta.mod(PRIMOZP);
+
+		return resta;
+	}
+	
+	private BigInteger  productoEnZp( BigInteger a , BigInteger b){
+
+		BigInteger producto = a.multiply(b);
+		producto = producto.mod(PRIMOZP);
+
+		return producto;
+	}
+
+	private BigInteger divisionEnZp( BigInteger a , BigInteger b){
+
+		BigInteger division = a.divide(b);
+		division = division.mod(PRIMOZP);
+		
+		return division;
+	}
+
+
+
+
+
 }
