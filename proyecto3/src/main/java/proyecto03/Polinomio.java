@@ -4,6 +4,8 @@ import java.math.BigInteger; //Para el manejo de números descomunales
 import java.security.SecureRandom; //Generar coeficientes aleatorios
 //import java.security.Security; //Para proveer a SecureRandom de un "proveedor"
 
+import java.util.Vector;
+
 import java.security.NoSuchAlgorithmException;
 
 public class Polinomio{
@@ -115,7 +117,7 @@ public class Polinomio{
 		 * Usando el algoritmo de Horner
 		 * */
 		BigInteger resultado = BigInteger.valueOf(0);
-		for( int i = this.grado.length; i>=0  ; i--){
+		for( int i = this.grado; i>=0  ; i--){
 			resultado = resultado.multiply( x ).add(this.coeficientes[i]);
 			
 		}
@@ -139,7 +141,7 @@ public class Polinomio{
 			for( int j = 0 ; j <puntos.length ; j++){
 				//Base de Lagrange
 				if(i!=j){
-					CoordXj = puntos[j].elementAt(0);
+					BigInteger coordXj = puntos[j].elementAt(0);
 					
 					//Operaciones en el campo Zp
 					numerador = this.productoEnZp(
