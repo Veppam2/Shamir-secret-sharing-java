@@ -79,10 +79,10 @@ public class Main{
 		       	int numeroLlavesMinimo = Integer.valueOf( args[3] );
 
 			String contrasena = pedirContrasena();
-			byte[] contrasenaHasheada  =
-				CifradorSecretoCompartido.obtenerLlaveSHA256( contrasena.getBytes() );
+			BigInteger contrasenaHasheada  =
+				CifradorSecretoCompartido.obtenerLlaveSHA256( contrasena );
 
-			System.out.println( new BigInteger( contrasenaHasheada ) ); 
+			System.out.println( contrasenaHasheada ); 
 			CifradorSecretoCompartido.generarArchivoConLlaves(
 					contrasenaHasheada,
 					numeroLlavesTotales,

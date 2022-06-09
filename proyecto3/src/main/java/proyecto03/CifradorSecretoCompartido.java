@@ -4,6 +4,8 @@ import java.security.MessageDigest;
 import java.math.BigInteger;
 import java.util.Vector;
 import java.util.LinkedList;
+import java.lang.StringBuffer;
+import java.nio.charset.StandardCharsets;
 
 import java.security.NoSuchAlgorithmException;
 import java.lang.NumberFormatException;
@@ -19,14 +21,16 @@ public class CifradorSecretoCompartido{
 
 	private CifradorSecretoCompartido(){}
 
-	public static byte[] obtenerLlaveSHA256( byte[] entrada ){
+	public static BigInteger obtenerLlaveSHA256( String entrada ){
 		
 		byte[] hash = null;
 
 
 		try{
 			MessageDigest hasher = MessageDigest.getInstance(CIFRADO);
-			hash = hasher.digest( entrada );
+			hash = hasher.digest(
+				entrada.getBytes( StandardCharsets.UTF_8) 
+			);
 
 			
 
@@ -35,7 +39,26 @@ public class CifradorSecretoCompartido{
 			System.exit(1);
 		}
 
-		return hash;
+		BigInteger llave = unificadorHashConBigInteger( hash );
+
+
+		return  llave;
+	}
+	private static BigInteger unificadorHashConBigInteger( byte[] hash ){
+
+		/*
+		StringBuffer llave = new StringBuffer();
+
+		for( byte b : hash ){
+			String v = Integer.toString( ((b & 0xff) +0X100) , 16 );
+			llave.append( v.substring(1));
+		}
+		*/
+		BigInteger num = new BigInteger(1, hash);
+		//StringBuilder hexString = new StringBuilder( num.to
+
+		return num; 
+
 	}
 
 	public static byte[] obtenerLlaveDeDescifrado( String dirLlaves ){
@@ -69,7 +92,7 @@ public class CifradorSecretoCompartido{
 
 	}	
 
-	private static  BigInteger interpolarConLagrangeEnX( LinkedList< Vector<BigInteger> > puntos , BigInteger x){
+	public static  BigInteger interpolarConLagrangeEnX( LinkedList< Vector<BigInteger> > puntos , BigInteger x){
 		
 		BigInteger resultado = BigInteger.ZERO;
 		
@@ -107,8 +130,14 @@ public class CifradorSecretoCompartido{
 			}	
 
 			//Forma de Lagrange
-			BigInteger baseDeLagrange = divisionEnZp( numerador , denominador);
-			BigInteger formaDeLagrangePi = productoEnZp( coordYi , baseDeLagrange );
+			BigInteger baseDeLagrange = productoEnZp(
+					numerador , 
+					denominador.modInverse(PRIMOZP)
+			);
+			BigInteger formaDeLagrangePi = productoEnZp( 
+					coordYi , 
+					baseDeLagrange 
+			);
 
 			resultado = sumaEnZp( resultado , formaDeLagrangePi );
 			i++;	
@@ -117,12 +146,13 @@ public class CifradorSecretoCompartido{
 		
 	}
 
-	public static void generarArchivoConLlaves( byte[] valorAOcultar, int numeroLlaves, int llavesRequeridas , String directorio ){
+	public static void generarArchivoConLlaves( BigInteger valorAOcultar, int numeroLlaves, int llavesRequeridas , String directorio ){
 		if(numeroLlaves < llavesRequeridas)
 			terminaEjecucion( "Se requiere que las llaves requeridas sean menor o iguales a las totales");
 
 		try{
-			BigInteger valorInicial = new BigInteger( valorAOcultar );
+			BigInteger valorInicial = valorAOcultar;
+			//BigInteger valorInicial = new BigInteger( valorAOcultar , 16 );
 
 			Polinomio polinomio = new Polinomio(llavesRequeridas-1 , valorInicial );
 			BigInteger[] valoresAleatorios = polinomio.obtenerBigNumsAleatorios( numeroLlaves );
