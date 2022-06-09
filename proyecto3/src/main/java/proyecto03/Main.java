@@ -67,6 +67,8 @@ public class Main{
 		return String.valueOf( contrasena );
 			
 	}
+	
+	private static byte[] hashRespaldo= null;
 
 	public static void main( String[] args )
     	{
@@ -79,16 +81,26 @@ public class Main{
 		       	int numeroLlavesMinimo = Integer.valueOf( args[3] );
 
 			String contrasena = pedirContrasena();
-			BigInteger contrasenaHasheada  =
+			byte[] contrasenaHasheada  =
 				CifradorSecretoCompartido.obtenerLlaveSHA256( contrasena );
 
-			System.out.println( contrasenaHasheada ); 
+			hashRespaldo = contrasenaHasheada;
+			System.out.println( new BigInteger( contrasenaHasheada) ); 
 			CifradorSecretoCompartido.generarArchivoConLlaves(
 					contrasenaHasheada,
 					numeroLlavesTotales,
 					numeroLlavesMinimo,
 					nombreArchivoLlaves
 			);
+			
+			byte[] llaveEnBytes = 
+				CifradorSecretoCompartido.obtenerLlaveDeDescifrado ( "llaves.fgr" );
+			
+			System.out.println(
+				MessageDigest.isEqual( hashRespaldo , llaveEnBytes ) 
+				);
+
+			System.out.println( new BigInteger( llaveEnBytes ) ); 
 						
 
 		}else if( args.length == 3 ){ //Descifrar
@@ -97,6 +109,7 @@ public class Main{
 
 			byte[] llaveEnBytes = 
 				CifradorSecretoCompartido.obtenerLlaveDeDescifrado ( dirArchivoConLlaves );
+			
 			System.out.println( new BigInteger( llaveEnBytes ) ); 
 		}else{
 			imprimirUso();

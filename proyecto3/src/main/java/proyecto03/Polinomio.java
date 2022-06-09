@@ -8,6 +8,7 @@ import java.util.Vector;
 import java.util.LinkedList;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 public class Polinomio{
 
@@ -66,9 +67,9 @@ public class Polinomio{
 
 		BigInteger[] coeficientesAleatorios = this.obtenerBigNumsAleatorios( this.coeficientes.length-1 );
 
-		for(int i = 0; i<coeficientesAleatorios.length; i++){
+		for(int i = 1; i<coeficientes.length; i++){
 
-			this.coeficientes[i+1] = coeficientesAleatorios[i];
+			this.coeficientes[i] = coeficientesAleatorios[i-1];
 		}
 
 	}
@@ -85,17 +86,16 @@ public class Polinomio{
 		 *
 		 * **/
 
-		String algorithm = "NativePRNG";
+		String algorithm = "SHA1PRNG";
+		String provider = "SUN";
 		SecureRandom generadorAleatorios = null;
 
 		BigInteger[] numerosAleatorios = new BigInteger[cantidadNumerosAleatorios];
 
-		//Provider proveedor = null;
 
 		try{
 
-			//proveedor = Security.getProviders()[0];
-			generadorAleatorios = SecureRandom.getInstance( algorithm );
+			generadorAleatorios = SecureRandom.getInstance( algorithm , provider );
 
 			for(int i = 0; i<cantidadNumerosAleatorios; i++){
 
@@ -113,6 +113,12 @@ public class Polinomio{
 
 			System.exit(1);
 
+		}catch( NoSuchProviderException ee ){
+			System.out.println(
+				"Error al generar BigInteger aleatorio"
+			);
+
+			System.exit(1);
 		}
 
 		return numerosAleatorios;
@@ -173,7 +179,7 @@ public class Polinomio{
 		 * Usando el algoritmo de Horner
 		 * */
 		BigInteger resultado = BigInteger.ZERO;
-		for( int i = this.grado-1; i>=0  ; i--){
+		for( int i = this.grado; i>=0  ; i--){
 			resultado = resultado.multiply( x ).add(this.coeficientes[i]);
 			
 		}

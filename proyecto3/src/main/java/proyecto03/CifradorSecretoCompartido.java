@@ -21,17 +21,15 @@ public class CifradorSecretoCompartido{
 
 	private CifradorSecretoCompartido(){}
 
-	public static BigInteger obtenerLlaveSHA256( String entrada ){
+	public static byte[] obtenerLlaveSHA256( String entrada ){
 		
 		byte[] hash = null;
 
 
 		try{
 			MessageDigest hasher = MessageDigest.getInstance(CIFRADO);
-			hash = hasher.digest(
-				entrada.getBytes( StandardCharsets.UTF_8) 
-			);
-
+			hasher.update( entrada.getBytes() );
+			hash = hasher.digest();
 			
 
 		}catch( NoSuchAlgorithmException e){
@@ -39,22 +37,17 @@ public class CifradorSecretoCompartido{
 			System.exit(1);
 		}
 
-		BigInteger llave = unificadorHashConBigInteger( hash );
-
-
-		return  llave;
+		return  hash;
 	}
 	private static BigInteger unificadorHashConBigInteger( byte[] hash ){
 
-		/*
 		StringBuffer llave = new StringBuffer();
 
 		for( byte b : hash ){
 			String v = Integer.toString( ((b & 0xff) +0X100) , 16 );
 			llave.append( v.substring(1));
 		}
-		*/
-		BigInteger num = new BigInteger(1, hash);
+		BigInteger num = new BigInteger( llave.toString() , 16);
 		//StringBuilder hexString = new StringBuilder( num.to
 
 		return num; 
@@ -71,7 +64,6 @@ public class CifradorSecretoCompartido{
 
 				BigInteger X = new BigInteger( llave.split(",")[0] );
 				BigInteger Y = new BigInteger( llave.split(",")[1] );
-
 				Vector<BigInteger> par = new Vector<BigInteger>();
 				par.add(X);
 				par.add(Y);
@@ -146,13 +138,21 @@ public class CifradorSecretoCompartido{
 		
 	}
 
-	public static void generarArchivoConLlaves( BigInteger valorAOcultar, int numeroLlaves, int llavesRequeridas , String directorio ){
+	public static void generarArchivoConLlaves( byte[] valorAOcultar, int numeroLlaves, int llavesRequeridas , String directorio ){
 		if(numeroLlaves < llavesRequeridas)
 			terminaEjecucion( "Se requiere que las llaves requeridas sean menor o iguales a las totales");
 
 		try{
-			BigInteger valorInicial = valorAOcultar;
-			//BigInteger valorInicial = new BigInteger( valorAOcultar , 16 );
+			
+			BigInteger valorInicial = 
+				unificadorHashConBigInteger( valorAOcultar );
+			
+
+			//BigInteger valorInicial = new BigInteger( valorAOcultar );
+			//SYSTEM	
+			System.out.println( 
+				"Amtes" + MessageDigest.isEqual( valorAOcultar, valorInicial.toByteArray())
+			);
 
 			Polinomio polinomio = new Polinomio(llavesRequeridas-1 , valorInicial );
 			BigInteger[] valoresAleatorios = polinomio.obtenerBigNumsAleatorios( numeroLlaves );
@@ -169,6 +169,16 @@ public class CifradorSecretoCompartido{
 
 				puntosDelPolinomio.add( vector );
 			}	
+
+			//Probar el interp 
+			BigInteger despues = 
+				interpolarConLagrangeEnX(puntosDelPolinomio,BigInteger.ZERO);
+
+			System.out.println( 
+				"Despues" + MessageDigest.isEqual( valorAOcultar, despues.toByteArray())
+			);
+
+
 
 			String llavesString = coordenadasATexto(puntosDelPolinomio );
 			

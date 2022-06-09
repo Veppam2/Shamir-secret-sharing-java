@@ -3,8 +3,12 @@ package proyecto03;
 import java.math.BigInteger; 
 import java.util.LinkedList;
 import java.util.Vector;
+import java.security.MessageDigest;
+
+import java.security.NoSuchAlgorithmException;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
 
@@ -42,7 +46,26 @@ public class TestInterpolador{
 		assertTrue( r.equals( new BigInteger("2") ) );
 
     	}	
-	
+	/**
+	* Rigorous Test :-)
+	*/
+	@Test
+    	public void interpoladorHash(){
+		String pwd = "Contraseña muy compleja 1234!!123#$/&$/41245$%&$";
+		byte[] hashA = CifradorSecretoCompartido.obtenerLlaveSHA256( pwd );
+		BigInteger bi = new BigInteger(hashA);
+
+		byte[] hashB  = bi.toByteArray();
+
+		assertTrue( MessageDigest.isEqual( hashA , hashB ) );
+
+		String pwd2= "Adios";
+		byte[] hashC = CifradorSecretoCompartido.obtenerLlaveSHA256( pwd2 );
+		
+		assertFalse( MessageDigest.isEqual( hashA , hashC ) );
+		
+
+	}			
 
 
 }
