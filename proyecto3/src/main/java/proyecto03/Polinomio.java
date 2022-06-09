@@ -5,16 +5,13 @@ import java.security.SecureRandom; //Generar coeficientes aleatorios
 //import java.security.Security; //Para proveer a SecureRandom de un "proveedor"
 
 import java.util.Vector;
+import java.util.LinkedList;
 
 import java.security.NoSuchAlgorithmException;
 
 public class Polinomio{
 
-	private static final int LONGITUD_NUMERO_BITS = 256; 
-	private static final BigInteger PRIMOZP= 
-		new BigInteger(
-			"208351617316091241234326746312124448251235562226470491514186331217050270460481"
-		);
+	private static final int LONGITUD_NUMERO_BITS_HEX = 16; 
 
 	private int grado;
 	private BigInteger[] coeficientes;
@@ -23,7 +20,7 @@ public class Polinomio{
 		
 		this(
 			grado,
-			new BigInteger(valorInicial, LONGITUD_NUMERO_BITS) 	
+			new BigInteger(valorInicial, LONGITUD_NUMERO_BITS_HEX) 	
 			
 	    	    );
 
@@ -37,7 +34,7 @@ public class Polinomio{
 		 **/
 
 		this.grado = grado;
-		this.coeficientes = new BigInteger[ this. grado+1 ]; //para cada i en {0,..n}
+		this.coeficientes = new BigInteger[ this.grado+1 ]; //para cada i en {0,..n}
 		
 		/**
 		 *
@@ -58,9 +55,68 @@ public class Polinomio{
 		 * Utilizamos la biblioteca SecureRandom para generar números aleatorios no deterministas.
 		 *
 		 * */
+		
+		/**
+		 *OBSERVACION: 
+		 *	De acuerdo a nuestra implementación, cada coeficiente del polinomio debe estar distribuido sobre el intervalo [0,PRIMOZP]. De acuerdo a la implementación del método 'valueOf()' de SecureRandom, el número que regresa es de a lo más 31 bits y mayor a 0 bits, por lo que el coeficiente es menor a PRIMOZP y se mantiene en el intervalo que buscamos. 
+		 *
+		 *Implementación de valueOf():
+		 *	https://docs.oracle.com/javase/8/docs/api/java/util/Random.html#nextInt--
+		 **/
 
-		this.llenarCoeficionesAleatorios();
+		BigInteger[] coeficientesAleatorios = this.obtenerBigNumsAleatorios( this.coeficientes.length-1 );
 
+		for(int i = 0; i<coeficientesAleatorios.length; i++){
+
+			this.coeficientes[i+1] = coeficientesAleatorios[i];
+		}
+
+	}
+
+	public BigInteger[] obtenerBigNumsAleatorios( int cantidadNumerosAleatorios ){
+
+		/**
+		 *  Para generar números completamente aleatorios utilizamos la biblioteca SecureRandom.
+		 *  Para la instancia del objeto se utiliza el método que require únicamente un algoritmo. La lista de los algoritmos puede encontrarse en la documentación de óracle:
+		 *
+		 *  	https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#SecureRandom
+		 *
+		 *  Utilizamos NativePRNG por conveniencia.
+		 *
+		 * **/
+
+		String algorithm = "NativePRNG";
+		SecureRandom generadorAleatorios = null;
+
+		BigInteger[] numerosAleatorios = new BigInteger[cantidadNumerosAleatorios];
+
+		//Provider proveedor = null;
+
+		try{
+
+			//proveedor = Security.getProviders()[0];
+			generadorAleatorios = SecureRandom.getInstance( algorithm );
+
+			for(int i = 0; i<cantidadNumerosAleatorios; i++){
+
+				int enteroRandom = generadorAleatorios.nextInt();
+				BigInteger BIRandom = BigInteger.valueOf(enteroRandom);	
+
+				numerosAleatorios[i] = BIRandom;
+			}
+
+						
+		}catch( NoSuchAlgorithmException e){
+			System.out.println(
+				"Error al generar BigInteger aleatorio"
+			);
+
+			System.exit(1);
+
+		}
+
+		return numerosAleatorios;
+		
 	}
 
 
@@ -116,90 +172,15 @@ public class Polinomio{
 		/*
 		 * Usando el algoritmo de Horner
 		 * */
-		BigInteger resultado = BigInteger.valueOf(0);
-		for( int i = this.grado; i>=0  ; i--){
+		BigInteger resultado = BigInteger.ZERO;
+		for( int i = this.grado-1; i>=0  ; i--){
 			resultado = resultado.multiply( x ).add(this.coeficientes[i]);
 			
 		}
 
 		return resultado;
 	}
-
-	public BigInteger interpolarConLagrangeEnX( Vector<BigInteger>[] puntos , BigInteger x){
-		
-		BigInteger resultado = BigInteger.valueOf(0);
-		
-		//Interpolación de Lagrange
-		for ( int i = 0 ; i < puntos.length ; i++){
-
-			BigInteger coordXi = puntos[i].elementAt(0);
-			BigInteger coordYi = puntos[i].elementAt(1);
-
-			BigInteger numerador = BigInteger.valueOf(1);
-			BigInteger denominador = BigInteger.valueOf(1);
-				
-			for( int j = 0 ; j <puntos.length ; j++){
-				//Base de Lagrange
-				if(i!=j){
-					BigInteger coordXj = puntos[j].elementAt(0);
-					
-					//Operaciones en el campo Zp
-					numerador = this.productoEnZp(
-							numerador , 
-							this.restaEnZp( x , coordXj) 
-					);
-					denominador = this.productoEnZp( 
-							denominador , 
-							this.restaEnZp( coordXi , coordXj) 
-					);
-
-
-				}
-			}	
-
-			//Forma de Lagrange
-			BigInteger baseDeLagrange = this.divisionEnZp( numerador , denominador);
-			BigInteger formaDeLagrangePi = this.productoEnZp( coordYi , baseDeLagrange );
-
-			resultado = this.sumaEnZp( resultado , formaDeLagrangePi );
-		
-		}
-		return resultado;
-		
-	}
 	
-	private BigInteger sumaEnZp( BigInteger a , BigInteger b){
-
-		BigInteger suma = a.subtract(b);
-		suma = suma.mod(PRIMOZP);
-
-		return suma;
-	}
-
-	private BigInteger restaEnZp( BigInteger a , BigInteger b){
-
-		BigInteger resta = a.subtract(b);
-		resta = resta.mod(PRIMOZP);
-
-		return resta;
-	}
-	
-	private BigInteger  productoEnZp( BigInteger a , BigInteger b){
-
-		BigInteger producto = a.multiply(b);
-		producto = producto.mod(PRIMOZP);
-
-		return producto;
-	}
-
-	private BigInteger divisionEnZp( BigInteger a , BigInteger b){
-
-		BigInteger division = a.divide(b);
-		division = division.mod(PRIMOZP);
-		
-		return division;
-	}
-
 
 
 
