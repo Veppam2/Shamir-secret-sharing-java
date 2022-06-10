@@ -67,15 +67,27 @@ public class Main{
 		return String.valueOf( contrasena );
 			
 	}
+	private static String obtenerNombreArchivo( String arch){
+		
+		int primerpunto = arch.indexOf(".");
+		
+		String nom = arch;
+		if(primerpunto!=-1)
+			nom = arch.substring(0,primerpunto);
+
+		return nom;
+		
+	}
 	
 	private static byte[] hashRespaldo= null;
 
 	public static void main( String[] args )
     	{
 		if( args.length == 5 ){ //Cifrar
-					//
+			
 			validarEntradaParaCifrar( args );
-
+			
+			//Obtener la llave y hacer el archivo con las llaves
 			String nombreArchivoLlaves = (args[1]+".fgr");
 		       	int numeroLlavesTotales = Integer.valueOf( args[2] );
 		       	int numeroLlavesMinimo = Integer.valueOf( args[3] );
@@ -83,25 +95,75 @@ public class Main{
 			String contrasena = pedirContrasena();
 			byte[] contrasenaHasheada  =
 				CifradorSecretoCompartido.obtenerLlaveSHA256( contrasena );
+			//Cifrar el archivo con la llave creada
 
-			hashRespaldo = contrasenaHasheada;
-			System.out.println( new BigInteger( contrasenaHasheada) ); 
-			CifradorSecretoCompartido.generarArchivoConLlaves(
-					contrasenaHasheada,
-					numeroLlavesTotales,
-					numeroLlavesMinimo,
-					nombreArchivoLlaves
+			String nombreArchivo = obtenerNombreArchivo( args[4] );	
+
+			CifradorSecretoCompartido.cifrarArchivoConLLave(
+					args[4],
+					nombreArchivo,
+					contrasenaHasheada
 			);
 			
-			byte[] llaveEnBytes = 
-				CifradorSecretoCompartido.obtenerLlaveDeDescifrado ( "llaves.fgr" );
-			
-			System.out.println(
-				MessageDigest.isEqual( hashRespaldo , llaveEnBytes ) 
-				);
+			hashRespaldo = contrasenaHasheada;
+			System.out.println( new BigInteger( contrasenaHasheada) ); 
 
-			System.out.println( new BigInteger( llaveEnBytes ) ); 
-						
+			/*
+			Cipher cifrador = null;
+			
+			try{
+				cifrador = Cipher.getInstance("AES");	
+
+				String secreto = "Otro secretote ahahahaha";
+
+				SecretKeySpec sec = new SecretKeySpec(contrasenaHasheada, 0,16, "AES" );
+
+				cifrador.init( Cipher.ENCRYPT_MODE, sec );
+				//Mensaje oculto
+				byte[] cifrado = cifrador.doFinal( secreto.getBytes() );
+
+				cifrador.init( Cipher.DECRYPT_MODE, sec );
+				byte[] descifrado = cifrador.doFinal(cifrado);
+
+				String secretoDescifrado = new String( descifrado);
+				
+				System.out.println( "SECRETO: "+ secretoDescifrado);
+				*/
+
+				CifradorSecretoCompartido.generarArchivoConLlaves(
+						contrasenaHasheada,
+						numeroLlavesTotales,
+						numeroLlavesMinimo,
+						nombreArchivoLlaves
+				);
+				
+				byte[] llaveEnBytes = 
+					CifradorSecretoCompartido.obtenerLlaveDeDescifrado ( "llaves.fgr" );
+				
+				System.out.println(
+					MessageDigest.isEqual( hashRespaldo , llaveEnBytes ) 
+					);
+				/*
+				//DEspues de interpolar 
+				sec = new SecretKeySpec( llaveEnBytes, 0,16, "AES" );
+				descifrado = cifrador.doFinal(cifrado);
+
+				secretoDescifrado = new String( descifrado);
+				
+				System.out.println( "SECRETO: "+ secretoDescifrado);
+				*/
+
+				System.out.println( new BigInteger( llaveEnBytes ) ); 
+
+			/*
+			}catch( Exception e){
+			}
+			*/
+			/*
+			}catch( NoSuchAlgorithmException e ){
+			}catch( NoSuchPaddingException ee ){
+			}catch( IllegalArgumentException eee){
+			}*/			
 
 		}else if( args.length == 3 ){ //Descifrar
 			String dirArchivoConLlaves = args[1];
@@ -110,6 +172,11 @@ public class Main{
 			byte[] llaveEnBytes = 
 				CifradorSecretoCompartido.obtenerLlaveDeDescifrado ( dirArchivoConLlaves );
 			
+			CifradorSecretoCompartido.descifrarArchivoConLlave(
+					dirArchivoCifrado,
+					llaveEnBytes
+			);
+
 			System.out.println( new BigInteger( llaveEnBytes ) ); 
 		}else{
 			imprimirUso();

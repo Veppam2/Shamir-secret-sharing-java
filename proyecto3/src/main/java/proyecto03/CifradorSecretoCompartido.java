@@ -5,11 +5,18 @@ import java.math.BigInteger;
 import java.util.Vector;
 import java.util.LinkedList;
 import java.lang.StringBuffer;
-import java.nio.charset.StandardCharsets;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.CipherInputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
+//import javax.crypto.NoSuchPaddingException;
 import java.security.NoSuchAlgorithmException;
 import java.lang.NumberFormatException;
 import java.util.regex.PatternSyntaxException;
+import java.io.FileNotFoundException;
+import java.lang.SecurityException;
 
 public class CifradorSecretoCompartido{
 
@@ -20,6 +27,95 @@ public class CifradorSecretoCompartido{
 		);
 
 	private CifradorSecretoCompartido(){}
+
+	public static void descifrarArchivoConLlave( String dirArchivo , byte[] llave){
+
+		Cipher cifrador = null;
+		SecretKeySpec llaveSecreta = null;
+		CipherInputStream flujoEntrada = null;
+
+		FileOutputStream flujoSalida = null;
+
+		//Obtener el nombre original del archivo. Por implementar.
+		String nombreArchivoDescifrado = "secreto.txt";
+
+		try{
+			//Descifrar el archivo 
+			cifrador = Cipher.getInstance("AES");	
+			llaveSecreta = new SecretKeySpec( llave, 0, 16, "AES" );
+			cifrador.init( Cipher.DECRYPT_MODE, llaveSecreta );
+
+			flujoSalida = new FileOutputStream( nombreArchivoDescifrado , true );
+			System.out.println( dirArchivo );
+			flujoEntrada = new CipherInputStream(
+				new FileInputStream( dirArchivo),
+			       	cifrador 
+			);
+			//meter contenido descifrado
+			int estado;
+			while( (estado = flujoEntrada.read() ) != -1){
+			System.out.println( "ENTRA" );
+				flujoSalida.write(estado);
+			System.out.println( "SALE" );
+			}
+			flujoSalida.close();
+			flujoEntrada.close();
+
+		}catch( FileNotFoundException e){
+			terminaEjecucion( "Error al leer el archivo '"+dirArchivo+"'. No fue encontrado");
+		}catch( SecurityException ee){
+			terminaEjecucion( "Error al leer el archivo '"+dirArchivo+"'. Permiso denegado");
+		}
+		catch( Exception e ){
+			terminaEjecucion( "Error al escribir el archivo cifrado" );
+		}	
+
+	
+	
+	}
+
+	public static void cifrarArchivoConLLave( String dirArchivo , String nombreArchivo , byte[] llave){
+
+		Cipher cifrador = null;
+		SecretKeySpec llaveSecreta = null;
+		CipherInputStream flujoEntrada = null;
+
+		FileOutputStream flujoSalida = null;
+
+		String nombreArchivoCifrado = (nombreArchivo+".aes");
+
+		try{
+			cifrador = Cipher.getInstance("AES");	
+			llaveSecreta = new SecretKeySpec( llave, 0, 16, "AES" );
+			cifrador.init( Cipher.ENCRYPT_MODE, llaveSecreta );
+
+			flujoSalida = new FileOutputStream( nombreArchivoCifrado , true );
+			System.out.println( dirArchivo );
+			flujoEntrada = new CipherInputStream(
+				new FileInputStream( dirArchivo),
+			       	cifrador 
+			);
+			//Meter nombre a archivo
+			
+			//meter contenido cifrado
+			int estado;
+			while( (estado = flujoEntrada.read() ) != -1){
+				flujoSalida.write(estado);
+			}
+			flujoSalida.close();
+			flujoEntrada.close();
+
+		}catch( FileNotFoundException e){
+			terminaEjecucion( "Error al leer el archivo '"+dirArchivo+"'. No fue encontrado");
+		}catch( SecurityException ee){
+			terminaEjecucion( "Error al leer el archivo '"+dirArchivo+"'. Permiso denegado");
+		}
+		catch( Exception e ){
+			terminaEjecucion( "Error al escribir el archivo cifrado" );
+		}	
+
+	
+	}
 
 	public static byte[] obtenerLlaveSHA256( String entrada ){
 		

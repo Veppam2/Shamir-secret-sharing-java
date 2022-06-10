@@ -60,9 +60,9 @@ public class TestInterpolador{
 		assertTrue( MessageDigest.isEqual( hashA , hashB ) );
 
 		String pwd2= "Adios";
-		byte[] hashC = CifradorSecretoCompartido.obtenerLlaveSHA256( pwd2 );
+		byte[] hashD= CifradorSecretoCompartido.obtenerLlaveSHA256( pwd2 );
 		
-		assertFalse( MessageDigest.isEqual( hashA , hashC ) );
+		assertFalse( MessageDigest.isEqual( hashA , hashD ) );
 		
 
 	}			
