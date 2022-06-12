@@ -74,7 +74,7 @@ public class Polinomio{
 
 	}
 
-	public BigInteger[] obtenerBigNumsAleatorios( int cantidadNumerosAleatorios ){
+	public static BigInteger[] obtenerBigNumsAleatorios( int cantidadNumerosAleatorios ){
 
 		/**
 		 *  Para generar números completamente aleatorios utilizamos la biblioteca SecureRandom.
