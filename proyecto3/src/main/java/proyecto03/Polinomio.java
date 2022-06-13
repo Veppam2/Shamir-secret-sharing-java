@@ -16,6 +16,10 @@ public class Polinomio{
 
 	private int grado;
 	private BigInteger[] coeficientes;
+	private static final BigInteger PRIMOZP=
+		new BigInteger(
+				"208351617316091241234326746312124448251235562226470491514186331217050270460481"
+	);
 	
 	public Polinomio(int grado, String valorInicial){
 		
@@ -65,7 +69,7 @@ public class Polinomio{
 		 *	https://docs.oracle.com/javase/8/docs/api/java/util/Random.html#nextInt--
 		 **/
 
-		BigInteger[] coeficientesAleatorios = this.obtenerBigNumsAleatorios( this.coeficientes.length-1 );
+		BigInteger[] coeficientesAleatorios = this.obtenerBigNumsAleatorios2( this.coeficientes.length-1 );
 
 		for(int i = 1; i<coeficientes.length; i++){
 
@@ -73,8 +77,25 @@ public class Polinomio{
 		}
 
 	}
+	public static BigInteger[] obtenerBigNumsAleatorios2( int cantidadNumerosAleatorios){
 
-	public BigInteger[] obtenerBigNumsAleatorios( int cantidadNumerosAleatorios ){
+		SecureRandom generadorAleatorios = new SecureRandom();
+
+		BigInteger[] numerosAleatorios = 
+			new BigInteger[cantidadNumerosAleatorios];
+
+		for(int i = 0; i<cantidadNumerosAleatorios; i++){
+
+			int enteroRandom = generadorAleatorios.nextInt();
+			BigInteger BIRandom = BigInteger.valueOf(enteroRandom).mod(PRIMOZP);	
+
+			numerosAleatorios[i] = BIRandom;
+		}
+
+		return numerosAleatorios;
+	}
+
+	public static BigInteger[] obtenerBigNumsAleatorios( int cantidadNumerosAleatorios ){
 
 		/**
 		 *  Para generar números completamente aleatorios utilizamos la biblioteca SecureRandom.
@@ -180,7 +201,7 @@ public class Polinomio{
 		 * */
 		BigInteger resultado = BigInteger.ZERO;
 		for( int i = this.grado; i>=0  ; i--){
-			resultado = resultado.multiply( x ).add(this.coeficientes[i]);
+			resultado = resultado.multiply( x ).mod(PRIMOZP).add(this.coeficientes[i]).mod(PRIMOZP);
 			
 		}
 

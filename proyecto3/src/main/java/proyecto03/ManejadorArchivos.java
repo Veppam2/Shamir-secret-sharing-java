@@ -1,15 +1,16 @@
 package proyecto03;
 
-import java.io.FileReader;
-import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.DataInputStream;
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 
 import java.util.LinkedList;
 
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.FileWriter;
-	import java.io.BufferedWriter;
 
 import java.io.IOException;
 	import java.io.FileNotFoundException;
@@ -43,13 +44,22 @@ public class ManejadorArchivos{
 
 	public static LinkedList<String> leerArchivo(String ruta){
 
-		BufferedReader reader;
-		FileReader arch;
+		FileInputStream file = null;
+		DataInputStream  input = null;
+		BufferedReader reader = null;
+
 		LinkedList<String> lineasLeidas = new LinkedList<String>();
+
 		try{	
-			arch = new FileReader( ruta.replace("/", "//") ); 
-			reader = new BufferedReader( arch );
-			
+			file = 
+				new FileInputStream(ruta.replace("/","//"));
+			input =
+				new DataInputStream(file);
+
+			reader = new BufferedReader(
+				new InputStreamReader(input)
+			);
+	
 			String lineaLeida = new String();
 
 			while( (lineaLeida = reader.readLine() ) != null){

@@ -67,15 +67,27 @@ public class Main{
 		return String.valueOf( contrasena );
 			
 	}
+	private static String obtenerNombreArchivo( String arch){
+		
+		int primerpunto = arch.indexOf(".");
+		
+		String nom = arch;
+		if(primerpunto!=-1)
+			nom = arch.substring(0,primerpunto);
+
+		return nom;
+		
+	}
 	
 	private static byte[] hashRespaldo= null;
 
 	public static void main( String[] args )
     	{
 		if( args.length == 5 ){ //Cifrar
-					//
+			
 			validarEntradaParaCifrar( args );
-
+			
+			//Obtener la llave y hacer el archivo con las llaves
 			String nombreArchivoLlaves = (args[1]+".fgr");
 		       	int numeroLlavesTotales = Integer.valueOf( args[2] );
 		       	int numeroLlavesMinimo = Integer.valueOf( args[3] );
@@ -83,25 +95,34 @@ public class Main{
 			String contrasena = pedirContrasena();
 			byte[] contrasenaHasheada  =
 				CifradorSecretoCompartido.obtenerLlaveSHA256( contrasena );
+			//Cifrar el archivo con la llave creada
 
+			String nombreArchivo = obtenerNombreArchivo( args[4] );	
+
+			CifradorSecretoCompartido.cifrarArchivoConLLave(
+					args[4],
+					nombreArchivo,
+					contrasenaHasheada
+			);
+			
 			hashRespaldo = contrasenaHasheada;
 			System.out.println( new BigInteger( contrasenaHasheada) ); 
+
 			CifradorSecretoCompartido.generarArchivoConLlaves(
 					contrasenaHasheada,
 					numeroLlavesTotales,
 					numeroLlavesMinimo,
 					nombreArchivoLlaves
 			);
-			
+			//DESCIFRAR				
 			byte[] llaveEnBytes = 
 				CifradorSecretoCompartido.obtenerLlaveDeDescifrado ( "llaves.fgr" );
 			
-			System.out.println(
-				MessageDigest.isEqual( hashRespaldo , llaveEnBytes ) 
-				);
-
-			System.out.println( new BigInteger( llaveEnBytes ) ); 
-						
+			//Lave original	
+			CifradorSecretoCompartido.descifrarArchivoConLlave(
+					"secreto.aes",
+					llaveEnBytes	
+			);
 
 		}else if( args.length == 3 ){ //Descifrar
 			String dirArchivoConLlaves = args[1];
@@ -110,6 +131,11 @@ public class Main{
 			byte[] llaveEnBytes = 
 				CifradorSecretoCompartido.obtenerLlaveDeDescifrado ( dirArchivoConLlaves );
 			
+			CifradorSecretoCompartido.descifrarArchivoConLlave(
+					dirArchivoCifrado,
+					llaveEnBytes
+			);
+
 			System.out.println( new BigInteger( llaveEnBytes ) ); 
 		}else{
 			imprimirUso();
