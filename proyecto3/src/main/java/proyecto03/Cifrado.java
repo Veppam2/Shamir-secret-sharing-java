@@ -1,3 +1,5 @@
+package proyecto03;
+
 import java.math.BigInteger;
 import java.util.Vector;
 import java.util.LinkedList;
@@ -36,7 +38,7 @@ public class Cifrado{
     */
     private void hashing(){
 
-    	String almacenaBytes = contrasenia.getBytes();
+    	 byte [] almacenaBytes = contrasenia.getBytes();
         
         try{    
 
@@ -53,25 +55,25 @@ public class Cifrado{
             throw new RuntimeException(e);
         }
     }
-
+    
     /**
     *Metodo que Cifra un mensaje 
     *@param ciMensaje mensaje a cifrar
     */
     public void cifrarMensaje(String ciMensaje){
 
-        Texto texto = new Texto();
+        ManejadorArchivos texto = new ManejadorArchivos();
         
         mensaje = ciMensaje;
         hashing();
         nPolinomio();       
 
-        texto.write(polinomio.evaluarEnX(n), nombreArchivoNEvaluaciones + ".frag");
+        texto.escribirArchivo(polinomio.evaluarEnX(n), nombreArchivoNEvaluaciones + ".frag");
         
         algoritmoAES(new BigInteger(hashedContrasenia,16).abs().toByteArray());
         
     }
-
+    //Ajuste al metodo de la clase ManejadorArchivos
     /**
     *Metodo que descifra el mensaje.
     *@param textoEvaluaciones texto que contiene las evaluaciones.
@@ -103,13 +105,13 @@ public class Cifrado{
             cifrado = Cipher.getInstance("AES");
 
             fos = new FileOutputStream(archivo+".aes",true);
-            sks = new SecretKeySpec(passwd, "AES");
+            sks = new SecretKeySpec(conEnBytes,0,16, "AES");
             
             cifrado.init(Cipher.ENCRYPT_MODE,sks);
             cis = new CipherInputStream(new FileInputStream(documentoOriginal),cifrado);
             
             while((escribeCon=cis.read()) != -1){
-                fos.write(escribeCon);
+                fos.escribirArchivo(escribeCon);
             }
             
             System.out.println("Se creo el archivo: " +archivo+ ".aes");
@@ -123,7 +125,7 @@ public class Cifrado{
             System.exit(1);
         }
     }
-
+    //Ajustes en SecretKeySpec y nombres de varibles
     /**
      * Crea un documento claro utilizando el archivo encriptado y la contraseña AES
      * @param conEnBytes contraseñan en bytes
@@ -139,23 +141,23 @@ public class Cifrado{
         
         try {
 
-            if(contrasenia.lastIndexOf('.') == -1){
-                archivo = contrasenia;
+            if(documentoCifrado.lastIndexOf('.') == -1){
+                archivo = documentoCifrado;
             
-            }else if(contrasenia.lastIndexOf('.') != -1){
+            }else if(documentoCifrado.lastIndexOf('.') != -1){
 
-                archivo = contrasenia.substring(0,contrasenia.lastIndexOf('.'));
+                archivo = documentoCifrado.substring(0,documentoCifrado.lastIndexOf('.'));
             }
 
             fos = new FileOutputStream(archivo+".desencriptado",true);
             cifrado = Cipher.getInstance("AES");
-            sks = new SecretKeySpec(conEnBytes, "AES");
+            sks = new SecretKeySpec(conEnBytes,0,16, "AES");
 
             cifrado.init(Cipher.DECRYPT_MODE,sks);
-            cis = new CipherInputStream(new FileInputStream(contrasenia),cifrado);
+            cis = new CipherInputStream(new FileInputStream(documentoCifrado),cifrado);
 
             while((escribeCon=cis.read()) != -1){
-                fos.write(escribeCon);
+                fos.escribirArchivo(escribeCon);
             }
 
             System.out.println("Se ha creado el archivo: "+archivo +".desencriptado");
@@ -169,7 +171,7 @@ public class Cifrado{
             System.exit(1);
         }
     }
-
+    //cambios en el metodo estaba mal nombrada
     /**
     * Metodo que lee el archivo con las evaluaciones del polinomio.
     * @return Contraseña escondida 
@@ -207,7 +209,7 @@ public class Cifrado{
             
             System.out.println("Analizando el polinomio de interpolación de Lagrange");
             
-            return polinomio.lagrange(new BigInteger("0"),vector).toByteArray();
+            return polinomio.interpolarConLagrangeEnX(new BigInteger("0"),vector).toByteArray();
 
         }catch (Exception e) {
 
