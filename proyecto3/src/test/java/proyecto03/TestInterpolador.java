@@ -84,15 +84,26 @@ public class TestInterpolador{
 				pwd.getBytes( StandardCharsets.UTF_8) 
 		);
 
+		/*
 		//Representación numérica del hash
 		BigInteger num = new BigInteger( 1, hash );
 		
-
+		
 		StringBuilder hex = new StringBuilder( num.toString(16) );
 
 		while(hex.length() <32 ){
 			hex.insert(0,'0');
 		}
+		*/
+		
+		StringBuffer hex = new StringBuffer();
+		for(byte b : hash){
+			hex.append(
+				Integer.toString( ((b&0xff)+0x100),16).substring(1)	
+			);
+		}
+
+
 		//representación hex del hash
 		String hexString = hex.toString();
 
@@ -103,7 +114,7 @@ public class TestInterpolador{
 		System.out.println( "llavefinalToBI = "+
 					(new BigInteger( llaveFinal.toByteArray() ) ) 
 		);
-		AssertTrue( 
+		assertTrue( 
 			llaveFinal.equals( 
 				new BigInteger( llaveFinal.toByteArray() )
 			)
@@ -140,14 +151,40 @@ public class TestInterpolador{
 		//PRUEBA CON LLAVE INTERPOLADA
 			
 		int minimoPuntosNeesarios = 4;
+		BigInteger valorInicial = llaveFinal;
 
 		BigInteger[] valoresAleatorios =
-			Polinomio.obtenerBigNumsAleatorios(minimoPuntosNeesarios);
-		Polinomio p = new Polinomio( minimoPuntosNeesarios-1, 
+			Polinomio.obtenerBigNumsAleatorios(minimoPuntosNeesarios+1);
+		Polinomio p = new Polinomio( minimoPuntosNeesarios-1, valorInicial); 
 		LinkedList< Vector<BigInteger> > puntos= new LinkedList<>();
-		for( BigInteger bi : valoresAleatorios ){
-			Big
+		for( BigInteger X : valoresAleatorios ){
+			BigInteger Y = p.evaluarEnX( X );
+
+			Vector<BigInteger> v = new Vector<>();
+			v.add(X);
+			v.add(Y);
+
+			puntos.add(v);
 		}
+
+		BigInteger llaveInterpolada = 
+			CifradorSecretoCompartido.interpolarConLagrangeEnX( puntos , BigInteger.ZERO );
+
+		System.out.println( "Llave Interpolada: "+ llaveInterpolada );
+		
+		//descifrar con llave interpolada
+		Cipher descifrador2 = Cipher.getInstance("AES/ECB/PKCS5Padding");
+		SecretKeySpec sec3 = new SecretKeySpec( 
+			llaveInterpolada.toByteArray()
+			,"AES"
+		);
+		descifrador2.init( Cipher.DECRYPT_MODE, sec3);
+		byte[] secretoDescifrado2 = descifrador2.doFinal( secretoOculto );
+
+		String desOcultado2 = new String ( secretoDescifrado2 );
+
+		System.out.println( "secretoOculto: "+aOcultar );	
+		System.out.println( "desocultado con intepolado: "+desOcultado2 );	
 
 
 

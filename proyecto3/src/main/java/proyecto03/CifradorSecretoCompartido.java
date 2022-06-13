@@ -323,7 +323,7 @@ public class CifradorSecretoCompartido{
 			);*/
 
 			Polinomio polinomio = new Polinomio(llavesRequeridas-1 , valorInicial );
-			BigInteger[] valoresAleatorios = polinomio.obtenerBigNumsAleatorios( numeroLlaves );
+			BigInteger[] valoresAleatorios = polinomio.obtenerBigNumsAleatorios2( numeroLlaves );
 
 			LinkedList< Vector<BigInteger> > puntosDelPolinomio = new LinkedList< Vector<BigInteger> >();
 
