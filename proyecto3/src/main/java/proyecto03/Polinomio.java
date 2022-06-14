@@ -2,13 +2,9 @@ package proyecto03;
 
 import java.math.BigInteger; //Para el manejo de números descomunales 
 import java.security.SecureRandom; //Generar coeficientes aleatorios
-//import java.security.Security; //Para proveer a SecureRandom de un "proveedor"
 
 import java.util.Vector;
 import java.util.LinkedList;
-
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 
 public class Polinomio{
 
@@ -69,7 +65,7 @@ public class Polinomio{
 		 *	https://docs.oracle.com/javase/8/docs/api/java/util/Random.html#nextInt--
 		 **/
 
-		BigInteger[] coeficientesAleatorios = this.obtenerBigNumsAleatorios2( this.coeficientes.length-1 );
+		BigInteger[] coeficientesAleatorios = this.obtenerBigNumsAleatorios( this.coeficientes.length-1 );
 
 		for(int i = 0; i<coeficientesAleatorios.length; i++){
 
@@ -77,7 +73,7 @@ public class Polinomio{
 		}
 
 	}
-	public static BigInteger[] obtenerBigNumsAleatorios2( int cantidadNumerosAleatorios){
+	public static BigInteger[] obtenerBigNumsAleatorios( int cantidadNumerosAleatorios){
 
 		SecureRandom generadorAleatorios = new SecureRandom();
 
@@ -95,107 +91,6 @@ public class Polinomio{
 		return numerosAleatorios;
 	}
 
-	public static BigInteger[] obtenerBigNumsAleatorios( int cantidadNumerosAleatorios ){
-
-		/**
-		 *  Para generar números completamente aleatorios utilizamos la biblioteca SecureRandom.
-		 *  Para la instancia del objeto se utiliza el método que require únicamente un algoritmo. La lista de los algoritmos puede encontrarse en la documentación de óracle:
-		 *
-		 *  	https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#SecureRandom
-		 *
-		 *  Utilizamos SHA1PRNG por conveniencia.
-		 *
-		 * **/
-
-		String algorithm = "SHA1PRNG";
-		String provider = "SUN";
-		SecureRandom generadorAleatorios = null;
-
-		BigInteger[] numerosAleatorios = new BigInteger[cantidadNumerosAleatorios];
-
-
-		try{
-
-			generadorAleatorios = SecureRandom.getInstance( algorithm , provider );
-			generadorAleatorios.nextBytes( new byte[1] );
-
-			for(int i = 0; i<cantidadNumerosAleatorios; i++){
-
-				int enteroRandom = generadorAleatorios.nextInt();
-				BigInteger BIRandom = BigInteger.valueOf(enteroRandom).mod(PRIMOZP);	
-				//System.out.println( BIRandom );
-
-				numerosAleatorios[i] = BIRandom;
-			}
-
-						
-		}catch( NoSuchAlgorithmException e){
-			System.out.println(
-				"Error al generar BigInteger aleatorio"
-			);
-
-			System.exit(1);
-
-		}catch( NoSuchProviderException ee ){
-			System.out.println(
-				"Error al generar BigInteger aleatorio"
-			);
-
-			System.exit(1);
-		}
-
-		return numerosAleatorios;
-		
-	}
-
-
-	private void llenarCoeficionesAleatorios(){
-
-		/**
-		 *  Para generar números completamente aleatorios utilizamos la biblioteca SecureRandom.
-		 *  Para la instancia del objeto se utiliza el método que require únicamente un algoritmo. La lista de los algoritmos puede encontrarse en la documentación de óracle:
-		 *
-		 *  	https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#SecureRandom
-		 *
-		 *  Utilizamos NativePRNG por conveniencia.
-		 *
-		 * **/
-
-		String algorithm = "NativePRNG";
-		SecureRandom generadorAleatorios = null;
-
-		//Provider proveedor = null;
-
-		try{
-
-			//proveedor = Security.getProviders()[0];
-			generadorAleatorios = SecureRandom.getInstance( algorithm );
-			for(int i = 1; i<this.grado; i++){
-				/**
-				 *OBSERVACION: 
-				 *	De acuerdo a nuestra implementación, cada coeficiente del polinomio debe estar distribuido sobre el intervalo [0,PRIMOZP]. De acuerdo a la implementación del método 'valueOf()' de SecureRandom, el número que regresa es de a lo más 31 bits y mayor a 0 bits, por lo que el coeficiente es menor a PRIMOZP y se mantiene en el intervalo que buscamos. 
-				 *
-				 *Implementación de valueOf():
-				 *	https://docs.oracle.com/javase/8/docs/api/java/util/Random.html#nextInt--
-				 **/
-
-				int enteroRandom = generadorAleatorios.nextInt();
-				BigInteger BIRandom = BigInteger.valueOf(enteroRandom);	
-
-				this.coeficientes[i] = BIRandom;
-			}
-
-						
-		}catch( NoSuchAlgorithmException e){
-			System.out.println(
-				"Error al generar coeficientes del polinomio"
-			);
-
-			System.exit(1);
-
-		}
-		return;
-	}
 
 	public BigInteger evaluarEnX( BigInteger x){
 		/*
@@ -212,8 +107,6 @@ public class Polinomio{
 		return resultado;
 	}
 	
-
-
 
 
 }

@@ -44,9 +44,8 @@ public class TestInterpolador{
 		l.add(p1);
 		l.add(p2);
 
-		BigInteger r = 
-			CifradorSecretoCompartido.interpolarConLagrangeEnX2( l ,BigInteger.ZERO );
-		System.out.println( "En recta : "+ r);
+		BigInteger r = CifradorSecretoCompartido.interpolarConLagrangeEnX( l ,BigInteger.ZERO );
+
 		assertTrue( r.equals( new BigInteger("4") ) );
 
 	}
@@ -56,7 +55,6 @@ public class TestInterpolador{
 	@Test
 	public void interpoladorCuadratico(){
 		
-		System.out.println( "INICIO CUADRATICO");
 		LinkedList<Vector<BigInteger>> l = new LinkedList<>();
 
 		BigInteger x1 = new BigInteger("1");
@@ -92,9 +90,8 @@ public class TestInterpolador{
 		l.add(p3);
 		l.add(p4);
 
-		BigInteger r = 
-			CifradorSecretoCompartido.interpolarConLagrangeEnX2( l ,BigInteger.ZERO );
-		System.out.println( "En cuadratico : "+ r);
+		BigInteger r = CifradorSecretoCompartido.interpolarConLagrangeEnX( l ,BigInteger.ZERO );
+
 		assertTrue( r.equals( new BigInteger("6") ) );
 
 	}
@@ -133,7 +130,7 @@ public class TestInterpolador{
 				pwd.getBytes( StandardCharsets.UTF_8) 
 		);
 
-		/*
+		
 		//Representación numérica del hash
 		BigInteger num = new BigInteger( 1, hash );
 		
@@ -143,14 +140,14 @@ public class TestInterpolador{
 		while(hex.length() <32 ){
 			hex.insert(0,'0');
 		}
-		*/
 		
+		/*	
 		StringBuffer hex = new StringBuffer();
 		for(byte b : hash){
 			hex.append(
 				Integer.toString( ((b&0xff)+0x100),16).substring(1)	
 			);
-		}
+		}*/
 
 
 		//representación hex del hash
@@ -158,16 +155,14 @@ public class TestInterpolador{
 
 		//Llave final
 		BigInteger llaveFinal = new BigInteger( hexString,16).abs();
-		System.out.println( "llavefinal = "+llaveFinal );
 		
-		System.out.println( "llavefinalToBI = "+
-					(new BigInteger( llaveFinal.toByteArray() ) ) 
-		);
+		//Test para verificar que la transformación a byte y de regreso no altera el valor
 		assertTrue( 
 			llaveFinal.equals( 
 				new BigInteger( llaveFinal.toByteArray() )
 			)
 		);
+		//Verifica que la llave sea menor al primo p del campo Zp
 		assertTrue( llaveFinal.compareTo( CifradorSecretoCompartido.PRIMOZP ) == -1); 
 
 		//Ocultar 
@@ -191,11 +186,9 @@ public class TestInterpolador{
 
 		String desOcultado = new String ( secretoDescifrado );
 
-		System.out.println( aOcultar );	
-		System.out.println( desOcultado );	
 	
 
-		//---
+		//Verifica que el método general de cifrado y descifrado conserva la información cifrada y descifrada
 		assertTrue( aOcultar.equals(desOcultado) );
 		
 		//PRUEBA CON LLAVE INTERPOLADA
@@ -212,7 +205,7 @@ public class TestInterpolador{
 		for( BigInteger X : valoresAleatorios ){
 			BigInteger Y = p.evaluarEnX( X );
 
-			System.out.println( X +", "+Y );
+			//Verificar que los coeficientes sean menores a el primo de Zp
 			assertTrue( X.compareTo( CifradorSecretoCompartido.PRIMOZP) ==-1);
 			assertTrue( Y.compareTo( CifradorSecretoCompartido.PRIMOZP) ==-1);
 
@@ -224,25 +217,13 @@ public class TestInterpolador{
 		}
 
 		BigInteger llaveInterpolada = 
-			CifradorSecretoCompartido.interpolarConLagrangeEnX2( puntos , BigInteger.ZERO );
+			CifradorSecretoCompartido.interpolarConLagrangeEnX( puntos , BigInteger.ZERO );
 		
 
 		//Verifica que la llave interpolada sea el valor que queremos ocultar
-		System.out.println( "Llave Interpolada: "+ llaveInterpolada );
 		assertTrue( llaveInterpolada.equals(valorInicial) );
 
 		
-		/*
-		//DEbugera
-		BigInteger valorInicial = llaveFinal;
-		BigInteger t = transformacion( valorInicial );
-		BigInteger tinv = transformacionInversa( t) ;
-
-		assertTrue( valorInicial.equals( tinv ) );
-		BigInteger llaveInterpolada = tinv;
-		
-		*/
-
 		//descifrar con llave interpolada
 		Cipher descifrador2 = Cipher.getInstance("AES/ECB/PKCS5Padding");
 		SecretKeySpec sec3 = new SecretKeySpec( 
@@ -254,25 +235,10 @@ public class TestInterpolador{
 
 		String desOcultado2 = new String ( secretoDescifrado2 );
 
-		System.out.println( "secretoOculto: "+aOcultar );	
-		System.out.println( "desocultado con intepolado: "+desOcultado2 );	
 
-
-		assertTrue( true);
+		assertTrue(  aOcultar.equals(desOcultado2) );
 		
 	}
-
-	private BigInteger transformacion( BigInteger v ){
-		return v.multiply( new BigInteger("50000") ).mod(CifradorSecretoCompartido.PRIMOZP );
-		//return v.multiply( new BigInteger("50000") ) ;
-	
-	}
-	private BigInteger transformacionInversa( BigInteger v ){
-		return v.divide( new BigInteger("50000") ).mod(CifradorSecretoCompartido.PRIMOZP );
-		//return v.divide( new BigInteger("50000") );
-	
-	}
-
 
 
 }

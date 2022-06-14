@@ -57,7 +57,6 @@ public class CifradorSecretoCompartido{
 			descifrador.init( Cipher.DECRYPT_MODE, llaveSecreta );
 
 			flujoSalida = new FileOutputStream( nombreArchivoDescifrado , true );
-			System.out.println( dirArchivo );
 			flujoEntrada = new CipherInputStream(
 				new FileInputStream( dirArchivo),
 			       	descifrador 
@@ -65,9 +64,7 @@ public class CifradorSecretoCompartido{
 			//meter contenido descifrado
 			int estado;
 			while( (estado = flujoEntrada.read() ) != -1){
-			System.out.println( "ENTRA" );
 				flujoSalida.write(estado);
-			System.out.println( "SALE" );
 			}
 			flujoSalida.close();
 			flujoEntrada.close();
@@ -108,7 +105,6 @@ public class CifradorSecretoCompartido{
 			cifrador.init( Cipher.ENCRYPT_MODE, llaveSecreta );
 
 			flujoSalida = new FileOutputStream( nombreArchivoCifrado , true );
-			System.out.println( dirArchivo );
 			flujoEntrada = new CipherInputStream(
 				new FileInputStream( dirArchivo),
 			       	cifrador 
@@ -142,7 +138,6 @@ public class CifradorSecretoCompartido{
 
 		try{
 			MessageDigest hasher = MessageDigest.getInstance(HASH);
-			//hasher.update( entrada.getBytes() );
 			//Hash original
 			byte[] hash = hasher.digest(
 				entrada.getBytes( StandardCharsets.UTF_8 )
@@ -161,7 +156,6 @@ public class CifradorSecretoCompartido{
 
 			//Llave final
 			BigInteger llaveFinalBI = new BigInteger( hexString,16).abs();
-			System.out.println(llaveFinalBI);
 
 			llaveFinal = llaveFinalBI.toByteArray();
 
@@ -174,44 +168,6 @@ public class CifradorSecretoCompartido{
 
 		return  llaveFinal;
 	}
-	private static String unificadorHashConBigInteger( byte[] hash ){
-
-		StringBuffer llave = new StringBuffer();
-
-		for( byte b : hash ){
-
-			/*
-			if( (b & 0xff) < 0x10)
-				llave.append("0");
-			*/
-
-			String v = Integer.toString( ((b & 0xff) +0X100) , 16 );
-			llave.append( v.substring(1));
-		}
-		//BigInteger num = new BigInteger( llave.toString() , 16);
-		//StringBuilder hexString = new StringBuilder( num.to
-
-		return llave.toString(); 
-
-	}
-	public static byte[] unificadorBigIntegerConHash( BigInteger llaveBI ){
-		
-		String llaveString = llaveBI.toString(16);
-		/*
-		int len = llaveString.length();
-		System.out.println( len );
-		byte[] llave = new byte[len/2];
-		System.out.println( llave.length );
-		for( int i = 0; i<len ; i+=2 ){
-			llave[i/2] =
-			       	(byte) ( (Character.digit(llaveString.charAt(i),16) << 4)+
-					Character.digit(llaveString.charAt(i+1),16) );
-		}
-		*/
-		return llaveBI.toByteArray();
-
-	}
-
 	public static byte[] obtenerLlaveDeDescifrado( String dirLlaves ){
 		
 		LinkedList<String> llaves = ManejadorArchivos.leerArchivo( dirLlaves );
@@ -235,17 +191,12 @@ public class CifradorSecretoCompartido{
 			terminaEjecucion("Alguna de las llaves está dañada");
 		}
 
-		//POderosa interpolación de lagrange
+		//Interpolación de lagrange
 		BigInteger llaveObtenidaPorLasLlaves = 
-			interpolarConLagrangeEnX2( coordenadas , BigInteger.ZERO );
-		System.out.println(llaveObtenidaPorLasLlaves);
+			interpolarConLagrangeEnX( coordenadas , BigInteger.ZERO );
+
+
 		byte[] llave = llaveObtenidaPorLasLlaves.toByteArray();
-		
-		/*
-		byte[] llave = 
-			unificadorBigIntegerConHash( llaveObtenidaPorLasLlaves );
-		*/
-			
 		
 		return llave;
 	}	
@@ -259,92 +210,9 @@ public class CifradorSecretoCompartido{
 			coordYs[i] = v.get(1);
 			i++;
 		}
-		return interpolarConLagrangeEnX2( coordXs , coordYs , x );
+		return interpolarConLagrangeEnX( coordXs , coordYs , x );
 
 
-	}
-	public static  BigInteger interpolarConLagrangeEnX2( LinkedList< Vector<BigInteger> > puntos , BigInteger x){
-		BigInteger[] coordXs = new BigInteger[ puntos.size() ];
-		BigInteger[] coordYs = new BigInteger[ puntos.size() ];
-		int i = 0;
-		for( Vector<BigInteger> v : puntos){
-			coordXs[i] = v.get(0);
-			coordYs[i] = v.get(1);
-			i++;
-		}
-		return interpolarConLagrangeEnX2( coordXs , coordYs , x );
-
-
-	}
-	public static  BigInteger interpolarConLagrangeEnX( BigInteger[] coordXs , BigInteger[] coordYs , BigInteger x){
-		
-		BigInteger resultado = BigInteger.ZERO;
-		
-		//Interpolación de Lagrange
-		for ( int i = 0 ; i < coordXs.length ; i++){
-		//int i = 0;
-		//for( Vector< BigInteger> punto : puntos ){
-			
-			System.out.println("ENTRA i: "+ i);
-
-
-			BigInteger coordXi = coordXs[i];
-			BigInteger coordYi = coordYs[i];
-			
-			System.out.println("X: "+ coordXi );
-			System.out.println("Y: "+ coordYi );
-
-			BigInteger numerador = BigInteger.ONE;
-			BigInteger denominador = BigInteger.ONE;
-			
-			//int j =0;
-			for( int j = 0 ; j <coordXs.length ; j++){
-			//for( Vector< BigInteger> punto2: puntos){
-				//Base de Lagrange
-				if(i!=j){
-					System.out.println("ENTRA j : "+ j);
-
-					BigInteger coordXj = coordXs[j];
-
-					System.out.println("Xj : "+ coordXj);
-
-					
-					//Operaciones en el campo Zp
-					numerador = productoEnZp(
-							numerador , 
-							restaEnZp( x , coordXj) 
-					);
-					System.out.println("Numerador i : "+ numerador);
-					denominador = productoEnZp( 
-							denominador , 
-							restaEnZp( coordXi , coordXj) 
-					);
-					System.out.println("Denominador i : "+ numerador);
-
-
-				}
-				//j++;
-			}	
-
-			//Forma de Lagrange
-			BigInteger baseDeLagrange = productoEnZp(
-					numerador , 
-					denominador.modInverse(PRIMOZP)
-			);
-			BigInteger formaDeLagrangePi = productoEnZp( 
-					coordYi , 
-					baseDeLagrange 
-			);
-
-			System.out.println( "Pi = " + baseDeLagrange);
-			System.out.println( "yi*Pi = " + formaDeLagrangePi);
-
-			resultado = sumaEnZp( resultado , formaDeLagrangePi );
-			System.out.println( "RESULTADO = " + resultado);
-			//i++;	
-		}
-		return sumaEnZp(resultado, PRIMOZP) ;
-		
 	}
 	private static BigInteger productoEntradas( BigInteger[] vals ){
 		BigInteger acum = BigInteger.ONE;
@@ -354,7 +222,7 @@ public class CifradorSecretoCompartido{
 		}
 		return acum;
 	}
-	public static BigInteger interpolarConLagrangeEnX2( BigInteger[] x_s, BigInteger[] y_s, BigInteger x){
+	public static BigInteger interpolarConLagrangeEnX( BigInteger[] x_s, BigInteger[] y_s, BigInteger x){
 		int k = x_s.length;
 
 		BigInteger[] nums = new BigInteger[k];
@@ -373,7 +241,6 @@ public class CifradorSecretoCompartido{
 					cur = x_s[j];
 			}
 			//-----------
-			System.out.println("CUR_x: "+cur);
 			BigInteger[] nums2 = new BigInteger[k-1];
 			BigInteger[] dens2 = new BigInteger[k-1];
 			for(int l = 0; l<others.length; l++){
@@ -382,23 +249,20 @@ public class CifradorSecretoCompartido{
 			}
 			nums[i] = productoEntradas(nums2); 
 			dens[i] = productoEntradas(dens2); 
-			System.out.println( "	numsi: "+nums[i]);
-			System.out.println( "	densi: "+dens[i]);
 		}
 		BigInteger den = productoEntradas( dens );
 		BigInteger num = BigInteger.ZERO; 
 		for( int i =0; i<k; i++){
 			BigInteger v = nums[i].multiply(den).multiply(y_s[i]).mod(PRIMOZP);
 			num = num.add( divmod(v, dens[i]) );
-			System.out.println(num);
 		}
 
 		BigInteger ret = divmod(num, den).add(PRIMOZP).mod(PRIMOZP);
 
 		return ret;
 
+}
 
-	}
 	private static BigInteger divmod( BigInteger num, BigInteger den){
 		BigInteger inv = den.modInverse(PRIMOZP);
 		return num.multiply(inv);
@@ -409,21 +273,11 @@ public class CifradorSecretoCompartido{
 			terminaEjecucion( "Se requiere que las llaves requeridas sean menor o iguales a las totales");
 
 		try{
-			/*
-			String valorInicial = 
-				unificadorHashConBigInteger( valorAOcultar );
-			*/
-			
 
 			BigInteger valorInicial = new BigInteger( valorAOcultar );
-			//SYSTEM	
-
-			/*System.out.println( 
-				"Amtes" + MessageDigest.isEqual( valorAOcultar, valorInicial.toByteArray())
-			);*/
 
 			Polinomio polinomio = new Polinomio(llavesRequeridas-1 , valorInicial );
-			BigInteger[] valoresAleatorios = polinomio.obtenerBigNumsAleatorios2( numeroLlaves );
+			BigInteger[] valoresAleatorios = polinomio.obtenerBigNumsAleatorios( numeroLlaves );
 
 			LinkedList< Vector<BigInteger> > puntosDelPolinomio = new LinkedList< Vector<BigInteger> >();
 
@@ -438,15 +292,6 @@ public class CifradorSecretoCompartido{
 				puntosDelPolinomio.add( vector );
 			}	
 
-			//Probar el interp 
-			BigInteger despues = 
-				interpolarConLagrangeEnX(puntosDelPolinomio,BigInteger.ZERO);
-
-			/*System.out.println( 
-				"Despues" + MessageDigest.isEqual( valorAOcultar, despues.toByteArray())
-			);*/
-
-
 
 			String llavesString = coordenadasATexto(puntosDelPolinomio );
 			
@@ -457,9 +302,6 @@ public class CifradorSecretoCompartido{
 		}catch( NumberFormatException e){ //Si a longitud de bytes es 0
 			terminaEjecucion( "Error al generar valor numérico de hash" );
 		}
-
-
-
 
 	}
 
@@ -478,44 +320,9 @@ public class CifradorSecretoCompartido{
 		return texto;
 	
 	}
-
-	private static BigInteger sumaEnZp( BigInteger a , BigInteger b){
-
-		BigInteger suma = a.subtract(b);
-		suma = suma.mod(PRIMOZP);
-
-		return suma;
-	}
-
-	private static BigInteger restaEnZp( BigInteger a , BigInteger b){
-
-		BigInteger resta = a.subtract(b);
-		resta = resta.mod(PRIMOZP);
-
-		return resta;
-	}
-	
-	private static BigInteger  productoEnZp( BigInteger a , BigInteger b){
-
-		BigInteger producto = a.multiply(b);
-		producto = producto.mod(PRIMOZP);
-
-		return producto;
-	}
-
-	private static BigInteger divisionEnZp( BigInteger a , BigInteger b){
-
-		BigInteger division = a.divide(b);
-		division = division.mod(PRIMOZP);
-		
-		return division;
-	}
-
-
 	private static void terminaEjecucion( String mensaje ){
-		System.out.println( mensaje );
+		System.out.println( mensaje);
 		System.exit(1);
-		
 	}
 
 }
