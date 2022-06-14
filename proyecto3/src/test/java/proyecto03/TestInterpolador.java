@@ -27,11 +27,11 @@ public class TestInterpolador{
 		
 		LinkedList<Vector<BigInteger>> l = new LinkedList<>();
 
-		BigInteger x1 = new BigInteger("3");
-		BigInteger y1 = new BigInteger("1");
+		BigInteger x1 = new BigInteger("4");
+		BigInteger y1 = new BigInteger("12");
 		
-		BigInteger x2 = new BigInteger("7");
-		BigInteger y2 = new BigInteger("5");
+		BigInteger x2 = new BigInteger("8");
+		BigInteger y2 = new BigInteger("20");
 
 		Vector<BigInteger> p1 = new Vector<>();
 		p1.add(x1);
@@ -45,15 +45,64 @@ public class TestInterpolador{
 		l.add(p2);
 
 		BigInteger r = 
-			CifradorSecretoCompartido.interpolarConLagrangeEnX( l ,BigInteger.ZERO );
-		assertTrue( r.equals( new BigInteger("2") ) );
+			CifradorSecretoCompartido.interpolarConLagrangeEnX2( l ,BigInteger.ZERO );
+		System.out.println( "En recta : "+ r);
+		assertTrue( r.equals( new BigInteger("4") ) );
 
-    	}	
+	}
 	/**
 	* Rigorous Test :-)
 	*/
 	@Test
-    	public void interpoladorHash(){
+	public void interpoladorCuadratico(){
+		
+		System.out.println( "INICIO CUADRATICO");
+		LinkedList<Vector<BigInteger>> l = new LinkedList<>();
+
+		BigInteger x1 = new BigInteger("1");
+		BigInteger y1 = new BigInteger("13");
+		
+		BigInteger x2 = new BigInteger("2");
+		BigInteger y2 = new BigInteger("38");
+		
+		BigInteger x3 = new BigInteger("3");
+		BigInteger y3 = new BigInteger("93");
+		
+		BigInteger x4 = new BigInteger("4");
+		BigInteger y4 = new BigInteger("190");
+
+		Vector<BigInteger> p1 = new Vector<>();
+		p1.add(x1);
+		p1.add(y1);
+
+		Vector<BigInteger> p2 = new Vector<>();
+		p2.add(x2);
+		p2.add(y2);
+		
+		Vector<BigInteger> p3 = new Vector<>();
+		p3.add(x3);
+		p3.add(y3);
+		
+		Vector<BigInteger> p4 = new Vector<>();
+		p4.add(x4);
+		p4.add(y4);
+
+		l.add(p1);
+		l.add(p2);
+		l.add(p3);
+		l.add(p4);
+
+		BigInteger r = 
+			CifradorSecretoCompartido.interpolarConLagrangeEnX2( l ,BigInteger.ZERO );
+		System.out.println( "En cuadratico : "+ r);
+		assertTrue( r.equals( new BigInteger("6") ) );
+
+	}
+	/**
+	* Rigorous Test :-)
+	*/
+	@Test
+    	public void llaveHash(){
 		String pwd = "Contraseña muy compleja 1234!!123#$/&$/41245$%&$";
 		byte[] hashA = CifradorSecretoCompartido.obtenerLlaveSHA256( pwd );
 		BigInteger bi = new BigInteger(hashA);
@@ -119,6 +168,7 @@ public class TestInterpolador{
 				new BigInteger( llaveFinal.toByteArray() )
 			)
 		);
+		assertTrue( llaveFinal.compareTo( CifradorSecretoCompartido.PRIMOZP ) == -1); 
 
 		//Ocultar 
 		Cipher cifrador = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -149,16 +199,22 @@ public class TestInterpolador{
 		assertTrue( aOcultar.equals(desOcultado) );
 		
 		//PRUEBA CON LLAVE INTERPOLADA
-			
 		int minimoPuntosNeesarios = 4;
 		BigInteger valorInicial = llaveFinal;
 
 		BigInteger[] valoresAleatorios =
 			Polinomio.obtenerBigNumsAleatorios(minimoPuntosNeesarios+1);
 		Polinomio p = new Polinomio( minimoPuntosNeesarios-1, valorInicial); 
+		//Verifica que la evaluación en 0 sea el valor a ocultar
+		assertTrue( p.evaluarEnX( BigInteger.ZERO).equals(valorInicial) );
+		
 		LinkedList< Vector<BigInteger> > puntos= new LinkedList<>();
 		for( BigInteger X : valoresAleatorios ){
 			BigInteger Y = p.evaluarEnX( X );
+
+			System.out.println( X +", "+Y );
+			assertTrue( X.compareTo( CifradorSecretoCompartido.PRIMOZP) ==-1);
+			assertTrue( Y.compareTo( CifradorSecretoCompartido.PRIMOZP) ==-1);
 
 			Vector<BigInteger> v = new Vector<>();
 			v.add(X);
@@ -168,10 +224,25 @@ public class TestInterpolador{
 		}
 
 		BigInteger llaveInterpolada = 
-			CifradorSecretoCompartido.interpolarConLagrangeEnX( puntos , BigInteger.ZERO );
-
-		System.out.println( "Llave Interpolada: "+ llaveInterpolada );
+			CifradorSecretoCompartido.interpolarConLagrangeEnX2( puntos , BigInteger.ZERO );
 		
+
+		//Verifica que la llave interpolada sea el valor que queremos ocultar
+		System.out.println( "Llave Interpolada: "+ llaveInterpolada );
+		assertTrue( llaveInterpolada.equals(valorInicial) );
+
+		
+		/*
+		//DEbugera
+		BigInteger valorInicial = llaveFinal;
+		BigInteger t = transformacion( valorInicial );
+		BigInteger tinv = transformacionInversa( t) ;
+
+		assertTrue( valorInicial.equals( tinv ) );
+		BigInteger llaveInterpolada = tinv;
+		
+		*/
+
 		//descifrar con llave interpolada
 		Cipher descifrador2 = Cipher.getInstance("AES/ECB/PKCS5Padding");
 		SecretKeySpec sec3 = new SecretKeySpec( 
@@ -187,10 +258,21 @@ public class TestInterpolador{
 		System.out.println( "desocultado con intepolado: "+desOcultado2 );	
 
 
-
 		assertTrue( true);
 		
 	}
+
+	private BigInteger transformacion( BigInteger v ){
+		return v.multiply( new BigInteger("50000") ).mod(CifradorSecretoCompartido.PRIMOZP );
+		//return v.multiply( new BigInteger("50000") ) ;
+	
+	}
+	private BigInteger transformacionInversa( BigInteger v ){
+		return v.divide( new BigInteger("50000") ).mod(CifradorSecretoCompartido.PRIMOZP );
+		//return v.divide( new BigInteger("50000") );
+	
+	}
+
 
 
 }

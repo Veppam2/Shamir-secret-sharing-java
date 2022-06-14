@@ -29,7 +29,7 @@ public class CifradorSecretoCompartido{
 	private static String CIFRADO = "AES/ECB/PKCS5Padding";
 	private static String ALGORITMO_CIFRADO = "AES";
 
-	private static final BigInteger PRIMOZP= 
+	public static final BigInteger PRIMOZP= 
 		new BigInteger(
 			"208351617316091241234326746312124448251235562226470491514186331217050270460481"
 		);
@@ -237,7 +237,7 @@ public class CifradorSecretoCompartido{
 
 		//POderosa interpolación de lagrange
 		BigInteger llaveObtenidaPorLasLlaves = 
-			interpolarConLagrangeEnX( coordenadas , BigInteger.ZERO ).abs();
+			interpolarConLagrangeEnX2( coordenadas , BigInteger.ZERO );
 		System.out.println(llaveObtenidaPorLasLlaves);
 		byte[] llave = llaveObtenidaPorLasLlaves.toByteArray();
 		
@@ -251,40 +251,79 @@ public class CifradorSecretoCompartido{
 	}	
 
 	public static  BigInteger interpolarConLagrangeEnX( LinkedList< Vector<BigInteger> > puntos , BigInteger x){
+		BigInteger[] coordXs = new BigInteger[ puntos.size() ];
+		BigInteger[] coordYs = new BigInteger[ puntos.size() ];
+		int i = 0;
+		for( Vector<BigInteger> v : puntos){
+			coordXs[i] = v.get(0);
+			coordYs[i] = v.get(1);
+			i++;
+		}
+		return interpolarConLagrangeEnX2( coordXs , coordYs , x );
+
+
+	}
+	public static  BigInteger interpolarConLagrangeEnX2( LinkedList< Vector<BigInteger> > puntos , BigInteger x){
+		BigInteger[] coordXs = new BigInteger[ puntos.size() ];
+		BigInteger[] coordYs = new BigInteger[ puntos.size() ];
+		int i = 0;
+		for( Vector<BigInteger> v : puntos){
+			coordXs[i] = v.get(0);
+			coordYs[i] = v.get(1);
+			i++;
+		}
+		return interpolarConLagrangeEnX2( coordXs , coordYs , x );
+
+
+	}
+	public static  BigInteger interpolarConLagrangeEnX( BigInteger[] coordXs , BigInteger[] coordYs , BigInteger x){
 		
 		BigInteger resultado = BigInteger.ZERO;
 		
 		//Interpolación de Lagrange
-		//for ( int i = 0 ; i < puntos.length ; i++){
-		int i = 0;
-		for( Vector< BigInteger> punto : puntos ){
+		for ( int i = 0 ; i < coordXs.length ; i++){
+		//int i = 0;
+		//for( Vector< BigInteger> punto : puntos ){
+			
+			System.out.println("ENTRA i: "+ i);
 
-			BigInteger coordXi = punto.elementAt(0);
-			BigInteger coordYi = punto.elementAt(1);
+
+			BigInteger coordXi = coordXs[i];
+			BigInteger coordYi = coordYs[i];
+			
+			System.out.println("X: "+ coordXi );
+			System.out.println("Y: "+ coordYi );
 
 			BigInteger numerador = BigInteger.ONE;
 			BigInteger denominador = BigInteger.ONE;
 			
-			int j =0;
-			//for( int j = 0 ; j <puntos.length ; j++){
-			for( Vector< BigInteger> punto2: puntos){
+			//int j =0;
+			for( int j = 0 ; j <coordXs.length ; j++){
+			//for( Vector< BigInteger> punto2: puntos){
 				//Base de Lagrange
 				if(i!=j){
-					BigInteger coordXj = punto2.elementAt(0);
+					System.out.println("ENTRA j : "+ j);
+
+					BigInteger coordXj = coordXs[j];
+
+					System.out.println("Xj : "+ coordXj);
+
 					
 					//Operaciones en el campo Zp
 					numerador = productoEnZp(
 							numerador , 
 							restaEnZp( x , coordXj) 
 					);
+					System.out.println("Numerador i : "+ numerador);
 					denominador = productoEnZp( 
 							denominador , 
 							restaEnZp( coordXi , coordXj) 
 					);
+					System.out.println("Denominador i : "+ numerador);
 
 
 				}
-				j++;
+				//j++;
 			}	
 
 			//Forma de Lagrange
@@ -297,11 +336,72 @@ public class CifradorSecretoCompartido{
 					baseDeLagrange 
 			);
 
+			System.out.println( "Pi = " + baseDeLagrange);
+			System.out.println( "yi*Pi = " + formaDeLagrangePi);
+
 			resultado = sumaEnZp( resultado , formaDeLagrangePi );
-			i++;	
+			System.out.println( "RESULTADO = " + resultado);
+			//i++;	
 		}
-		return resultado;
+		return sumaEnZp(resultado, PRIMOZP) ;
 		
+	}
+	private static BigInteger productoEntradas( BigInteger[] vals ){
+		BigInteger acum = BigInteger.ONE;
+		for( int i = 0; i<vals.length; i++){
+			BigInteger v = vals[i];
+			acum = acum.multiply(v);
+		}
+		return acum;
+	}
+	public static BigInteger interpolarConLagrangeEnX2( BigInteger[] x_s, BigInteger[] y_s, BigInteger x){
+		int k = x_s.length;
+
+		BigInteger[] nums = new BigInteger[k];
+		BigInteger[] dens = new BigInteger[k];
+
+		for( int i = 0; i<k ; i++){
+			BigInteger[] others = new BigInteger[k-1];
+			BigInteger cur = null;
+			//----others.pop(i)
+			int cont = 0;
+			for( int j = 0; j<k; j++){
+				if( i!=j){
+					others[cont] = x_s[j];
+					cont++;
+				}else
+					cur = x_s[j];
+			}
+			//-----------
+			System.out.println("CUR_x: "+cur);
+			BigInteger[] nums2 = new BigInteger[k-1];
+			BigInteger[] dens2 = new BigInteger[k-1];
+			for(int l = 0; l<others.length; l++){
+				nums2[l] = x.subtract( others[l]);
+				dens2[l] = cur.subtract( others[l]);
+			}
+			nums[i] = productoEntradas(nums2); 
+			dens[i] = productoEntradas(dens2); 
+			System.out.println( "	numsi: "+nums[i]);
+			System.out.println( "	densi: "+dens[i]);
+		}
+		BigInteger den = productoEntradas( dens );
+		BigInteger num = BigInteger.ZERO; 
+		for( int i =0; i<k; i++){
+			BigInteger v = nums[i].multiply(den).multiply(y_s[i]).mod(PRIMOZP);
+			num = num.add( divmod(v, dens[i]) );
+			System.out.println(num);
+		}
+
+		BigInteger ret = divmod(num, den).add(PRIMOZP).mod(PRIMOZP);
+
+		return ret;
+
+
+	}
+	private static BigInteger divmod( BigInteger num, BigInteger den){
+		BigInteger inv = den.modInverse(PRIMOZP);
+		return num.multiply(inv);
 	}
 
 	public static void generarArchivoConLlaves( byte[] valorAOcultar, int numeroLlaves, int llavesRequeridas , String directorio ){
@@ -362,6 +462,8 @@ public class CifradorSecretoCompartido{
 
 
 	}
+
+
 	private static String coordenadasATexto( LinkedList< Vector <BigInteger> > coordenadas){
 		String texto = "";
 		for( Vector< BigInteger > coordenada : coordenadas ){
@@ -374,6 +476,7 @@ public class CifradorSecretoCompartido{
 			);
 		}
 		return texto;
+	
 	}
 
 	private static BigInteger sumaEnZp( BigInteger a , BigInteger b){

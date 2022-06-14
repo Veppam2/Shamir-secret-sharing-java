@@ -71,9 +71,9 @@ public class Polinomio{
 
 		BigInteger[] coeficientesAleatorios = this.obtenerBigNumsAleatorios2( this.coeficientes.length-1 );
 
-		for(int i = 1; i<coeficientes.length; i++){
+		for(int i = 0; i<coeficientesAleatorios.length; i++){
 
-			this.coeficientes[i] = coeficientesAleatorios[i-1];
+			this.coeficientes[i+1] = coeficientesAleatorios[i];
 		}
 
 	}
@@ -103,7 +103,7 @@ public class Polinomio{
 		 *
 		 *  	https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#SecureRandom
 		 *
-		 *  Utilizamos NativePRNG por conveniencia.
+		 *  Utilizamos SHA1PRNG por conveniencia.
 		 *
 		 * **/
 
@@ -117,11 +117,13 @@ public class Polinomio{
 		try{
 
 			generadorAleatorios = SecureRandom.getInstance( algorithm , provider );
+			generadorAleatorios.nextBytes( new byte[1] );
 
 			for(int i = 0; i<cantidadNumerosAleatorios; i++){
 
 				int enteroRandom = generadorAleatorios.nextInt();
-				BigInteger BIRandom = BigInteger.valueOf(enteroRandom);	
+				BigInteger BIRandom = BigInteger.valueOf(enteroRandom).mod(PRIMOZP);	
+				//System.out.println( BIRandom );
 
 				numerosAleatorios[i] = BIRandom;
 			}
@@ -201,7 +203,9 @@ public class Polinomio{
 		 * */
 		BigInteger resultado = BigInteger.ZERO;
 		for( int i = this.grado; i>=0  ; i--){
-			resultado = resultado.multiply( x ).mod(PRIMOZP).add(this.coeficientes[i]).mod(PRIMOZP);
+			//resultado = resultado.multiply( x ).mod(PRIMOZP).add(this.coeficientes[i]).mod(PRIMOZP);
+			//resultado = this.coeficientes[i].add(x.multiply(resultado));
+			resultado = this.coeficientes[i].add(x.multiply(resultado).mod(PRIMOZP) ).mod(PRIMOZP);
 			
 		}
 
