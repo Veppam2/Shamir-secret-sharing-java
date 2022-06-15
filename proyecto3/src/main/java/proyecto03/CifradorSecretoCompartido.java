@@ -40,7 +40,7 @@ public class CifradorSecretoCompartido{
 
 	/**
 	 * Metodo que descifra un mensjae utilizando la clave generada
-	 * @param dirArchivo directorio donde se encuentra el archivo a descifrar
+	 * @param dirArchivoCifrado directorio donde se encuentra el archivo a descifrar
 	 * @param llave clave requerida para descifrar
 	 */
 	public static void descifrarArchivoConLlave( String dirArchivoCifrado , byte[] llave){
