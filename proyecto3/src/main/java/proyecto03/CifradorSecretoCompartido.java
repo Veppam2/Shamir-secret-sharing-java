@@ -11,10 +11,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 
-//import javax.xml.bind.DatatypeConverter;
-
-
-//import javax.crypto.NoSuchPaddingException;
 import java.security.NoSuchAlgorithmException;
 import java.lang.NumberFormatException;
 import java.util.regex.PatternSyntaxException;
@@ -30,6 +26,9 @@ public class CifradorSecretoCompartido{
 	private static String CIFRADO = "AES/ECB/PKCS5Padding";
 	private static String ALGORITMO_CIFRADO = "AES";
 
+	/**
+	 * Valor sobre el cual va a tomar lugar el campo Zp
+	 */
 	public static final BigInteger PRIMOZP= 
 		new BigInteger(
 			"208351617316091241234326746312124448251235562226470491514186331217050270460481"
@@ -222,8 +221,9 @@ public class CifradorSecretoCompartido{
 	}	
 	/**
 	 * Metodo que realiza la interpolacion de Langrage
-	 * @param puntos conjunto de puntos 
-	 * @param x 
+	 * @param puntos Lista de pares ordenados (x,y). Los puntos a evaluar el interpolador
+	 * @param x El valor sobre cuál vamos a evaluar el interpolador
+	 * @return El resultado de la interpolación de lagrange dados los puntos 'puntos' y 'x'.
 	 */
 	public static  BigInteger interpolarConLagrangeEnX( LinkedList< Vector<BigInteger> > puntos , BigInteger x){
 		BigInteger[] coordXs = new BigInteger[ puntos.size() ];
@@ -239,7 +239,9 @@ public class CifradorSecretoCompartido{
 
 	}
 	/**
-	 * 
+	 * Metodo que regresa el producto iterado sobre cada valor de vals
+	 * @param vals el arreglo de valores a multiplicar
+	 * @return El producto sobre cada valor del arreglo de entrada
 	 */
 	private static BigInteger productoEntradas( BigInteger[] vals ){
 		BigInteger acum = BigInteger.ONE;
@@ -253,15 +255,49 @@ public class CifradorSecretoCompartido{
 	 * Metodo que realiza la interpolacion de Langrage
 	 * @param x_s arreglo de puntos x
 	 * @param y_s arreglo de puntos y
-	 * @param x 
+	 * @param x El valor sobre el cuál se va a interpolar. 
+	 * @return El resultado de la interpolación de lagrange dados los puntos y valores x_s y_s y x
 	 */
 	public static BigInteger interpolarConLagrangeEnX( BigInteger[] x_s, BigInteger[] y_s, BigInteger x){
+		/*
+		 * En un intento deseperado por implementar la interpolación de lagrange, esta implementación es una adaptación a la encontrada en wikipedia para python:
+		 *  -> https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing#Preparation
+		 *
+		 *  Una breve explicación se dará a continuación:
+		 *
+		 *  Una observación importante es que estamos realizando la interpolación de lagrange en un campo finito Zp, donde p es un primo, en específico PRIMOZP. Este cambio será de vital importancia manejar cuando se realicen operaciones sobre los valores de cada punto dado, pues esta siempre deben de exisir dentro del campo Zp.
+		 *
+		 *  La intepolación de lagrange se define como:
+		 *
+		 *	     k-1
+		 *	    ______
+		 *	    \ 		____  x_m - x
+		 *  f(x) =   \     y_j* |  |  _________    	con x valuada en 0. 
+		 *  	     /          |  |  x_m - x_j
+		 *  	    /_____	m=0
+		 *  	      j=0       m!=j
+		 *
+		 *  Donde en nuestra función x es el valor que recibe f(x) y x_s son las coordenadas xs de los puntos y x_y son las coordenadas ys de los puntos. Ambos deben ser de la misma magnitud.
+		 *
+		 * Para poder operar en Zp la suma utilzamos el for (1). de forma que para operar en Zp la fracción vamos a ir guardando los valores en nums y dems como denominadores y numeradores respectivamente. Para posteriormente realizar el producto iterado de la fórmula anterior. 
+		 * En el for tomamos en la variable cur el valor de x_j de forma que en others tenemos todos los valores que no sean x_j de x_s. 
+		 *
+		 * nums2 y dens2 son para realizar la operación respectiva de los numeradores y denominadores bajo el valor de x_j dado en la iteración.
+		 *
+		 * Al final del for de (1) en dens tenemos el producto de la fórmula anterior para posteriormente sumarlo. para num, como tenemos que relaizar operaciones de suma, y producto. Estos deben de caer en Zp. En este punto entra la función divmod.
+		 *
+		 * divmod(a,b) lo que regresa es el producto de a con el inverso multiplicativo en Zp de b, por lo que en realidad así es como relaizamos la operación de división en Zp.
+		 *
+		 * Como estamos en Zp al resultado de divmod(num,den) le sumamos PRIMOZP y después le obtenemos su módulo para que si el valor era negativo (y por lo tanto otro valor distinto al que buscamos en Zp, se vuelva positivo y este sea el valor final que buscamos.
+		 *
+		 * */
+
 		int k = x_s.length;
 
 		BigInteger[] nums = new BigInteger[k];
 		BigInteger[] dens = new BigInteger[k];
 
-		for( int i = 0; i<k ; i++){
+		for( int i = 0; i<k ; i++){//(1)
 			BigInteger[] others = new BigInteger[k-1];
 			BigInteger cur = null;
 			//----others.pop(i)
@@ -299,7 +335,7 @@ public class CifradorSecretoCompartido{
 	 * Metodo que realiza el modulo entre el numerador y el denominador
 	 * @param num numerador
 	 * @param den denominador
-	 * @return devuleve el resto de una división
+	 * @return devuleve el resultado de la división de num y den en Zp. Es decir, el producto de num con el inverso multiplicativo de den en Zp.
 	 */
 	private static BigInteger divmod( BigInteger num, BigInteger den){
 		BigInteger inv = den.modInverse(PRIMOZP);
@@ -348,7 +384,11 @@ public class CifradorSecretoCompartido{
 		}
 
 	}
-
+	/**
+	 * Metodo que obtiene el nombre de un archivo sin su última extensión dada una ruta 
+	 * @param dirArchivo directorio del archivo al cual obtener su nombre 
+	 * @return El nombre del archivo sin su última extensión.
+	 */
 	private static String obtenerNombreArchivo( String dirArchivo ){
 		int ultimaBarra = dirArchivo.lastIndexOf("/");
 		int ultimoPunto = dirArchivo.lastIndexOf(".");
