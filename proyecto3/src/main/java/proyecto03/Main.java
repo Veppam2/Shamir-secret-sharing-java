@@ -28,6 +28,7 @@ public class Main{
 		);
 	
 	}
+	
 	private static void validarEntradaParaCifrar( String[] datos){
 
 		String bandera = datos[0];
