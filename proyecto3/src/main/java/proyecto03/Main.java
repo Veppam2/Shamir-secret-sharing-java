@@ -1,10 +1,7 @@
 package proyecto03;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
 import java.io.Console;
 
-import java.security.NoSuchAlgorithmException;
 
 /**
  * Hello world!
@@ -28,6 +25,7 @@ public class Main{
 		);
 	
 	}
+	
 	private static void validarEntradaParaCifrar( String[] datos){
 
 		String bandera = datos[0];
@@ -42,7 +40,7 @@ public class Main{
 			int numeroLlavesPorHacer = Integer.valueOf( stringLlavesPorHacer );
 			int numeroLlavesRequeridas = Integer.valueOf( stringNumeroLlavesRequeridas );
 
-			if( numeroLlavesRequeridas < numeroLlavesRequeridas){		
+			if( numeroLlavesPorHacer < numeroLlavesRequeridas){		
 				imprimirUso();
 				System.exit(1);
 			}
@@ -79,7 +77,6 @@ public class Main{
 		
 	}
 	
-	private static byte[] hashRespaldo= null;
 
 	public static void main( String[] args )
     	{
@@ -105,8 +102,6 @@ public class Main{
 					contrasenaHasheada
 			);
 			
-			hashRespaldo = contrasenaHasheada;
-			System.out.println( new BigInteger( contrasenaHasheada) ); 
 
 			CifradorSecretoCompartido.generarArchivoConLlaves(
 					contrasenaHasheada,

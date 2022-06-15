@@ -4,13 +4,11 @@ import java.security.MessageDigest;
 import java.math.BigInteger;
 import java.util.Vector;
 import java.util.LinkedList;
-import java.lang.StringBuffer;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.CipherInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.lang.Character;
 import java.nio.charset.StandardCharsets;
 
 //import javax.xml.bind.DatatypeConverter;
@@ -22,7 +20,10 @@ import java.lang.NumberFormatException;
 import java.util.regex.PatternSyntaxException;
 import java.io.FileNotFoundException;
 import java.lang.SecurityException;
-
+/**
+ * Clase que cifra/descifra un mensaje utilizando el algoritmo de El Esquema de Secreto Compartido de Shamir
+ * 
+ */
 public class CifradorSecretoCompartido{
 
 	private static String  HASH = "SHA-256";
@@ -33,9 +34,16 @@ public class CifradorSecretoCompartido{
 		new BigInteger(
 			"208351617316091241234326746312124448251235562226470491514186331217050270460481"
 		);
-
+	/**
+	 * Constructor vacio 
+	 */
 	private CifradorSecretoCompartido(){}
 
+	/**
+	 * Metodo que descifra un mensjae utilizando la clave generada
+	 * @param dirArchivo directorio donde se encuentra el archivo a descifrar
+	 * @param llave clave requerida para descifrar
+	 */
 	public static void descifrarArchivoConLlave( String dirArchivoCifrado , byte[] llave){
 
 		Cipher descifrador = null;
@@ -81,6 +89,12 @@ public class CifradorSecretoCompartido{
 	
 	}
 
+	/**
+	 * Metodo que cifra un archivo utilizando el codigo hash y AES
+	 * @param dirArchivo directorio del archivo donde se encuenra
+	 * @param nombreArchivo nombre del archivo que se genera con extension ".aes"
+	 * @param llaveHash codigo hash de la contraseña
+	 */
 	public static void cifrarArchivoConLLave( String dirArchivo , String nombreArchivo , byte[] llaveHash){
 
 		Cipher cifrador = null;
@@ -127,6 +141,11 @@ public class CifradorSecretoCompartido{
 	
 	}
 
+	/**
+	 * Metodo que genera el código hash de la contraseña ingresada
+	 * @param entrada contrasea ingresada
+	 * @return codigo hash de la contraseña
+	 */
 	public static byte[] obtenerLlaveSHA256( String entrada ){
 		
 		byte[] llaveFinal = null;
@@ -164,6 +183,11 @@ public class CifradorSecretoCompartido{
 
 		return  llaveFinal;
 	}
+	/**
+	 * Metedo que toma la llave generada en el directotio donde se encuentra
+	 * @param dirLlaves directorio donde se encuentra la llave
+	 * @return llave para descifrar
+	 */
 	public static byte[] obtenerLlaveDeDescifrado( String dirLlaves ){
 		
 		LinkedList<String> llaves = ManejadorArchivos.leerArchivo( dirLlaves );
@@ -196,7 +220,11 @@ public class CifradorSecretoCompartido{
 		
 		return llave;
 	}	
-
+	/**
+	 * Metodo que realiza la interpolacion de Langrage
+	 * @param puntos conjunto de puntos 
+	 * @param x 
+	 */
 	public static  BigInteger interpolarConLagrangeEnX( LinkedList< Vector<BigInteger> > puntos , BigInteger x){
 		BigInteger[] coordXs = new BigInteger[ puntos.size() ];
 		BigInteger[] coordYs = new BigInteger[ puntos.size() ];
@@ -210,6 +238,9 @@ public class CifradorSecretoCompartido{
 
 
 	}
+	/**
+	 * 
+	 */
 	private static BigInteger productoEntradas( BigInteger[] vals ){
 		BigInteger acum = BigInteger.ONE;
 		for( int i = 0; i<vals.length; i++){
@@ -218,6 +249,12 @@ public class CifradorSecretoCompartido{
 		}
 		return acum;
 	}
+	/**
+	 * Metodo que realiza la interpolacion de Langrage
+	 * @param x_s arreglo de puntos x
+	 * @param y_s arreglo de puntos y
+	 * @param x 
+	 */
 	public static BigInteger interpolarConLagrangeEnX( BigInteger[] x_s, BigInteger[] y_s, BigInteger x){
 		int k = x_s.length;
 
@@ -258,12 +295,23 @@ public class CifradorSecretoCompartido{
 		return ret;
 
 }
-
+	/**
+	 * Metodo que realiza el modulo entre el numerador y el denominador
+	 * @param num numerador
+	 * @param den denominador
+	 * @return devuleve el resto de una división
+	 */
 	private static BigInteger divmod( BigInteger num, BigInteger den){
 		BigInteger inv = den.modInverse(PRIMOZP);
 		return num.multiply(inv);
 	}
-
+	/**
+	 * Metodo que genera un archivo con la llaves requeridas
+	 * @param valorAOcultar bytes que se ocultaran
+	 * @param numeroLlaves total de llaves
+	 * @param llavesRequeridas las llaves que se requiere para descifrar
+	 * @param directorio directorio donde se encuentras las llaves
+	 */
 	public static void generarArchivoConLlaves( byte[] valorAOcultar, int numeroLlaves, int llavesRequeridas , String directorio ){
 		if(numeroLlaves < llavesRequeridas)
 			terminaEjecucion( "Se requiere que las llaves requeridas sean menor o iguales a las totales");
@@ -273,7 +321,7 @@ public class CifradorSecretoCompartido{
 			BigInteger valorInicial = new BigInteger( valorAOcultar );
 
 			Polinomio polinomio = new Polinomio(llavesRequeridas-1 , valorInicial );
-			BigInteger[] valoresAleatorios = polinomio.obtenerBigNumsAleatorios( numeroLlaves );
+			BigInteger[] valoresAleatorios = Polinomio.obtenerBigNumsAleatorios( numeroLlaves );
 
 			LinkedList< Vector<BigInteger> > puntosDelPolinomio = new LinkedList< Vector<BigInteger> >();
 
@@ -317,6 +365,11 @@ public class CifradorSecretoCompartido{
 	}
 
 
+	/**
+	 * Metodo que convierte de coordenadas a texto
+	 * @param coordenadas coordenadas a convertir
+	 * @return texto que se convertio 
+	 */
 	private static String coordenadasATexto( LinkedList< Vector <BigInteger> > coordenadas){
 		String texto = "";
 		for( Vector< BigInteger > coordenada : coordenadas ){
@@ -331,6 +384,11 @@ public class CifradorSecretoCompartido{
 		return texto;
 	
 	}
+
+	/**
+	 * Metodo que termina la ejecución del mensjae
+	 * @param mensaje mensaje 
+	 */
 	private static void terminaEjecucion( String mensaje ){
 		System.out.println( mensaje);
 		System.exit(1);

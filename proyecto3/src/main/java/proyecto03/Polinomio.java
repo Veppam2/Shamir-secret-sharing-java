@@ -3,9 +3,10 @@ package proyecto03;
 import java.math.BigInteger; //Para el manejo de números descomunales 
 import java.security.SecureRandom; //Generar coeficientes aleatorios
 
-import java.util.Vector;
-import java.util.LinkedList;
 
+/**
+ * Clase que crea polinomios y evalua la interpolacion de la
+ */
 public class Polinomio{
 
 	private static final int LONGITUD_NUMERO_BITS_HEX = 16; 
@@ -16,7 +17,11 @@ public class Polinomio{
 		new BigInteger(
 				"208351617316091241234326746312124448251235562226470491514186331217050270460481"
 	);
-	
+	/**
+	 * Constructor con parametros para un Polinomio
+	 * @param grado grado del polinomio
+	 * @param valorInicial cadena con el valor inicial
+	 */
 	public Polinomio(int grado, String valorInicial){
 		
 		this(
@@ -26,7 +31,11 @@ public class Polinomio{
 	    	    );
 
 	}
-
+	/**
+	 * Constructor con parametros para un Polinomio
+	 * @param grado grado del polinomio
+	 * @param valorInicial el valor inicial del polinomio
+	 */
 	public Polinomio(int grado, BigInteger valorInicial){
 		/**
 		 * Un polinomio de grado n sobre una estructura C se define como:
@@ -65,7 +74,7 @@ public class Polinomio{
 		 *	https://docs.oracle.com/javase/8/docs/api/java/util/Random.html#nextInt--
 		 **/
 
-		BigInteger[] coeficientesAleatorios = this.obtenerBigNumsAleatorios( this.coeficientes.length-1 );
+		BigInteger[] coeficientesAleatorios = Polinomio.obtenerBigNumsAleatorios( this.coeficientes.length-1 );
 
 		for(int i = 0; i<coeficientesAleatorios.length; i++){
 
@@ -73,6 +82,11 @@ public class Polinomio{
 		}
 
 	}
+	/**
+	 * Metodo que genera y obtiene numeros aleatorios
+	 * @param cantidadNumerosAleatorios numeros aleatorios
+	 * @return la cantidad de numeros aleatorios
+	 */
 	public static BigInteger[] obtenerBigNumsAleatorios( int cantidadNumerosAleatorios){
 
 		SecureRandom generadorAleatorios = new SecureRandom();
@@ -91,7 +105,11 @@ public class Polinomio{
 		return numerosAleatorios;
 	}
 
-
+	/**
+	 * Metodo que evalua la evaluaciones del Polinomio
+	 * @param x evaluaciones 
+	 * @return devuelve las evaluaciones
+	 */
 	public BigInteger evaluarEnX( BigInteger x){
 		/*
 		 * Usando el algoritmo de Horner

@@ -14,11 +14,21 @@ import java.util.LinkedList;
 
 import java.io.IOException;
 	import java.io.FileNotFoundException;
-
+/**
+*Clase que trabaja con archivos de texto 
+*/
 public class ManejadorArchivos{
-
+	
+	/**
+	 * Constructor vacio
+	 */
 	private ManejadorArchivos(){}
-
+	
+	/**
+	 * Metodo que escribe un archivo y su directorio 
+	 * @param contenido el texto que se escribirá
+	 * @param directorio directorio donde se encontrará el archivo 
+	 */
 	public static void escribirArchivo( String contenido, String directorio ){
 
 		BufferedWriter writer =null;
@@ -42,6 +52,11 @@ public class ManejadorArchivos{
 		
 	}	
 
+	/**
+	 * Metodo que lee el archivo 
+	 * @param ruta directorio donde se encuntra el archivo
+	 * @return las lineas que se leyeron del archivo
+	 */
 	public static LinkedList<String> leerArchivo(String ruta){
 
 		FileInputStream file = null;
