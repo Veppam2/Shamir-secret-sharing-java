@@ -69,11 +69,11 @@ public class Main{
 	}
 	private static String obtenerNombreArchivo( String arch){
 		
-		int primerpunto = arch.indexOf(".");
+		int archivo = arch.lastIndexOf("/");
 		
-		String nom = arch;
-		if(primerpunto!=-1)
-			nom = arch.substring(0,primerpunto);
+		String nom= arch;
+		if(archivo!=-1)
+			nom = arch.substring(archivo+1,arch.length());
 
 		return nom;
 		
@@ -114,15 +114,6 @@ public class Main{
 					numeroLlavesMinimo,
 					nombreArchivoLlaves
 			);
-			//DESCIFRAR				
-			byte[] llaveEnBytes = 
-				CifradorSecretoCompartido.obtenerLlaveDeDescifrado ( "llaves.fgr" );
-			
-			//Lave original	
-			CifradorSecretoCompartido.descifrarArchivoConLlave(
-					"secreto.aes",
-					llaveEnBytes	
-			);
 
 		}else if( args.length == 3 ){ //Descifrar
 			String dirArchivoConLlaves = args[1];
@@ -136,7 +127,6 @@ public class Main{
 					llaveEnBytes
 			);
 
-			System.out.println( new BigInteger( llaveEnBytes ) ); 
 		}else{
 			imprimirUso();
 			System.exit(1);

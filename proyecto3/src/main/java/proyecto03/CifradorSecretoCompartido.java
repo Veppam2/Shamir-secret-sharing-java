@@ -36,7 +36,7 @@ public class CifradorSecretoCompartido{
 
 	private CifradorSecretoCompartido(){}
 
-	public static void descifrarArchivoConLlave( String dirArchivo , byte[] llave){
+	public static void descifrarArchivoConLlave( String dirArchivoCifrado , byte[] llave){
 
 		Cipher descifrador = null;
 		SecretKeySpec llaveSecreta = null;
@@ -45,8 +45,7 @@ public class CifradorSecretoCompartido{
 		FileOutputStream flujoSalida = null;
 
 		//Obtener el nombre original del archivo. Por implementar.
-		String nombreArchivoDescifrado = "secreto.txt";
-
+		String nombreArchivoDescifrado = obtenerNombreArchivo(dirArchivoCifrado);
 		try{
 			//Descifrar el archivo 
 			descifrador = Cipher.getInstance(CIFRADO);	
@@ -58,7 +57,7 @@ public class CifradorSecretoCompartido{
 
 			flujoSalida = new FileOutputStream( nombreArchivoDescifrado , true );
 			flujoEntrada = new CipherInputStream(
-				new FileInputStream( dirArchivo),
+				new FileInputStream( dirArchivoCifrado),
 			       	descifrador 
 			);
 			//meter contenido descifrado
@@ -70,13 +69,12 @@ public class CifradorSecretoCompartido{
 			flujoEntrada.close();
 
 		}catch( FileNotFoundException e){
-			terminaEjecucion( "Error al leer el archivo '"+dirArchivo+"'. No fue encontrado");
+			terminaEjecucion( "Error al leer el archivo '"+dirArchivoCifrado+"'. No fue encontrado");
 		}catch( SecurityException ee){
-			terminaEjecucion( "Error al leer el archivo '"+dirArchivo+"'. Permiso denegado");
+			terminaEjecucion( "Error al leer el archivo '"+dirArchivoCifrado+"'. Permiso denegado");
 		}
 		catch( Exception eee ){
-			System.err.println(eee);
-			terminaEjecucion( "Error al escribir el archivo cifrado" );
+			terminaEjecucion("Se intrudujo un número incorrecto de llaves o las llaves están dañadas\nPosiblemente el archivo no se decifre correctamente" );
 		}	
 
 	
@@ -109,8 +107,6 @@ public class CifradorSecretoCompartido{
 				new FileInputStream( dirArchivo),
 			       	cifrador 
 			);
-			//Meter nombre a archivo
-			
 			//meter contenido cifrado
 			int estado;
 			while( (estado = flujoEntrada.read() ) != -1){
@@ -303,6 +299,21 @@ public class CifradorSecretoCompartido{
 			terminaEjecucion( "Error al generar valor numérico de hash" );
 		}
 
+	}
+
+	private static String obtenerNombreArchivo( String dirArchivo ){
+		int ultimaBarra = dirArchivo.lastIndexOf("/");
+		int ultimoPunto = dirArchivo.lastIndexOf(".");
+
+		String nom = dirArchivo;
+		if( ultimaBarra != -1){
+			nom = nom.substring( ultimaBarra+1, dirArchivo.length());
+		}
+		if( ultimoPunto != -1){
+			nom = nom.substring(0,ultimoPunto);
+		}
+		return nom;
+		
 	}
 
 
