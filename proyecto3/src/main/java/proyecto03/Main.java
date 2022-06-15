@@ -11,6 +11,11 @@ import java.security.NoSuchAlgorithmException;
  *
  */
 public class Main{
+	/*
+	 * Despliega la barra de opciones que se pueden realizar 
+	 * y lo que se requiere para poder cifrar/descrifrar 
+	 *
+	 */
 	private static void imprimirUso(){
 		System.out.println(
 			"Esquema de secreto compartido. USO:\n"+
@@ -28,7 +33,10 @@ public class Main{
 		);
 	
 	}
-	
+	/*
+	 * Verifica que los datos de entrada sean correctos 
+	 *
+	 */
 	private static void validarEntradaParaCifrar( String[] datos){
 
 		String bandera = datos[0];
@@ -55,8 +63,12 @@ public class Main{
 		}
 		
 	}
+	
 	private static String pedirContrasena(){
-		
+		/*
+	 	 * Contraseña solicitada al usuario 
+	 	 *
+	 	 */
 		Console terminal;
 		char[] contrasena = null;
 	
@@ -68,8 +80,12 @@ public class Main{
 		return String.valueOf( contrasena );
 			
 	}
-	private static String obtenerNombreArchivo( String arch){
-		
+
+	private static String obtenerNombreArchivo( String arch){ 
+		/*
+	 	 * Consigue el nombre de un archivo
+	 	 *
+	 	 */
 		int primerpunto = arch.indexOf(".");
 		
 		String nom = arch;
@@ -91,14 +107,6 @@ public class Main{
 			//Obtener la llave y hacer el archivo con las llaves
 			String nombreArchivoLlaves = (args[1]+".fgr");
 		       	int numeroLlavesTotales = Integer.valueOf( args[2] );
-		       	int numeroLlavesMinimo = Integer.valueOf( args[3] );
-
-			String contrasena = pedirContrasena();
-			byte[] contrasenaHasheada  =
-				CifradorSecretoCompartido.obtenerLlaveSHA256( contrasena );
-			//Cifrar el archivo con la llave creada
-
-			String nombreArchivo = obtenerNombreArchivo( args[4] );	
 
 			CifradorSecretoCompartido.cifrarArchivoConLLave(
 					args[4],
