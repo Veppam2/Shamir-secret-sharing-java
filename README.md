@@ -1,5 +1,4 @@
-# Modelado-Proyecto3
-## Modelado y Programación. Proyecto 3: Esquema de Secreto Compartido de Shamir.
+# Esquema de Secreto Compartido de Shamir.
 
 ### Integrantes:
  - Carlos Daniel Cortés Jiménez.
